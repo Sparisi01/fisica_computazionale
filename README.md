@@ -1,1 +1,1 @@
-# fisica_computazionale
+Appunti e codici del corso di fisica computazionale UNITN
