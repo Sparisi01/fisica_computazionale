@@ -38,10 +38,22 @@ int main() {
     FILE *fptr1;
     FILE *fptr2;
     FILE *fptr3;
+    FILE *fptr4;
 
     fptr1 = fopen("stabile.dat", "w");
     fptr2 = fopen("instabile1.dat", "w");
     fptr3 = fopen("instabile2.dat", "w");
+    fptr4 = fopen("limite_instabilita.dat", "w");
+
+    /**
+     * 2^26 che è la radice di 2^52 il massimo numero esprimibile nella parte frazionaria
+     * quando viene eseguita la somma la traslazione dell'sponenziale fa si che il numero
+     * frazionario non possa più essere espresso in 52 bit e si ha quello che viene chiamato
+     * l'effetto di assorbimento.
+     */
+
+    radiciInstabili1(2, 16 * pow(2, 26) + 1, 2, fptr4);  // instabile
+    radiciInstabili1(2, 16 * pow(2, 26), 2, fptr4);      // stabile
 
     for (double b = 2; b < 1e15; b *= 2.) {
         radiciStabili(a, b, c, fptr1);
