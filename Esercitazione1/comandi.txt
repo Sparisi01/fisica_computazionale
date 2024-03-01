@@ -3,4 +3,4 @@ chcp 65001 // Passare a utf8
 chcp 1252 //tornare a standard
 
 
-hcp 65001 & nomeFile.exe > nomeFile.dat & chcp 1252
+chcp 65001 & nomeFile.exe > nomeFile.dat & chcp 1252
