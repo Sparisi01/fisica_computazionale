@@ -29,7 +29,7 @@ int main() {
         if (x + 1.f == 1.f) {
             fprintf(file2, "%10.5e\n", x);
         } else {
-            double result = x * (log(1.f + x) / x);
+            double result = log(1.f + x);
             fprintf(file2, "%10.5e\n", result);
         }
 
@@ -37,7 +37,7 @@ int main() {
         if (x + 1.f == 1.f) {
             fprintf(file3, "%10.5e\n", x);
         } else {
-            double result = x * (log(1.f + x) / ((1.f + x) - 1));
+            double result = x * (log(1.f + x) / ((1.f + x) - 1.f));
             fprintf(file3, "%10.5e\n", result);
         }
     }

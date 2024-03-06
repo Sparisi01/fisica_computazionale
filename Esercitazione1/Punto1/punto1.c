@@ -5,6 +5,8 @@
 int main() {
     //! L'errore si ha quando f è 2^n volte più piccolo di 2 dove n è il numero di bit dedicati alla frazione
 
+    float i = 0x11;
+    printf("%f\n", i);
     float f = 2;
     int n_div = 0;
 
