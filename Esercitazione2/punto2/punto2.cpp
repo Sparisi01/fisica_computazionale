@@ -3,8 +3,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "S:\Coding\fisica_computazionale\algoritmi\s_integrali.h"
-#include "S:\Coding\fisica_computazionale\algoritmi\s_ricercaZeri.h"
+#include "S:\Coding\fisica_computazionale\utility\plot.h"
+#include "S:\Coding\fisica_computazionale\utility\s_integrali.h"
+#include "S:\Coding\fisica_computazionale\utility\s_ricercaZeri.h"
 
 #define V0 38.5  //[MeV]
 // #define V0 27.4
@@ -22,6 +23,8 @@
 #define B 1
 #define precisione 1e-7
 #define PI 3.1415926535
+
+using namespace std;
 
 double f(double x) {
     return 1 / tan(sqrt(v - x)) + sqrt(x / (v - x));
@@ -69,20 +72,36 @@ int main(int argc, char const *argv[]) {
         double e_bisezione = ricercaZeriBisezione(0.1, 3, n_iterazioni, f);
         double E_bisezione = -e_bisezione * lambda;
 
-        double e_secante = ricercaZeriSecante(2, 3, n_iterazioni, f);
+        double e_secante = ricercaZeriSecante(0.1, 3, n_iterazioni, f);
         double E_secante = -e_secante * lambda;
 
-        double e_newton = ricercaZeriNewton(2, 3, n_iterazioni, f, f_derivate);
+        double e_newton = ricercaZeriNewton(0.1, n_iterazioni, f, f_derivate);
         double E_newton = -e_newton * lambda;
-        fprintf(fileConvergenze, "%d %10.5e %10.5e %10.5e\n", n_iterazioni, E - E_newton, E - E_secante, E - E_bisezione);
+        fprintf(fileConvergenze, "%d %10.5e %10.5e %10.5e\n", n_iterazioni, fabs(E - E_newton), fabs(E - E_secante), fabs(E - E_bisezione));
     }
+
+    const char *commands = {
+        "reset"
+        "set datafile commentschars '#@&'\n"
+        "set term png\n"
+        "set output 'plot.png'\n"
+        "set title 'Convergenza metodi ricerca zeri'\n"
+        "set xrange [1:30]\n"
+        "set logscale y\n"
+        "set xlabel 'Numero iterazioni'\n"
+        "set ylabel '(E_{r} - E_{s}) [MeV]'\n"
+        "plot 'convergenze.dat' using 0 : 4 with linespoint title \"Bisezione\","
+        "'' using 0 : 3 with linespoint title \"Secante\","
+        "'' using 0 : 2 with linespoint title \"Newton\""};
+
+    executeGNUPlotCommands(commands);
 
     // Valor Medio
 
-    double limsupint = 100;
-    double norma = integraleSimpson(0, limsupint, 100000, psisquare);
-    double media_posizione_quadra = integraleSimpson(0, limsupint, 100000, funzione_integranda_numeratore);
-    double media_posizione = integraleSimpson(0, limsupint, 100000, funzione_integranda_numeratore2);
+    double limsupint = 30;
+    double norma = integraleSimpson(0, limsupint, 1000, psisquare);
+    double media_posizione_quadra = integraleSimpson(0, limsupint, 1000, funzione_integranda_numeratore);
+    double media_posizione = integraleSimpson(0, limsupint, 1000, funzione_integranda_numeratore2);
 
     double media_posizione_quadra_normalizzata = media_posizione_quadra / norma;
     double media_posizione_normalizzata = media_posizione / norma;
