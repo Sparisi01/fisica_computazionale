@@ -1,6 +1,9 @@
 {
     "files.associations": {
         "stdlib.h": "c",
-        "xstring": "cpp"
+        "xstring": "cpp",
+        "stdio.h": "c",
+        "plot.h": "c",
+        "cmath": "c"
     }
 }

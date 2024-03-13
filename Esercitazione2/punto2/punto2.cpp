@@ -20,7 +20,6 @@
 #define e 0.190409
 
 #define A 1
-#define B 1
 #define precisione 1e-7
 #define PI 3.1415926535
 
@@ -39,12 +38,11 @@ double f_derivate(double x) {
 // Funzioni integrale media posizione
 double psi(double x) {
     if (x == 0)
-        return A * sqrt(v - e) / (2 * sqrt(PI));
-    else if (x <= R)
-        return A * sin(sqrt(v - e) * x) / (x * 2 * sqrt(PI));
-    else if (x > R)
-        return B * exp(-x * sqrt(e)) / (x * 2 * sqrt(PI));
-
+        return A * sqrt(v - e) / (R * 2 * sqrt(PI));
+    else if (x <= 1)
+        return A * sin(sqrt(v - e) * x) / (x * R * 2 * sqrt(PI));
+    else if (x > 1)
+        return sin(sqrt(v - e)) / exp(-sqrt(e)) * exp(-x * sqrt(e)) / (x * R * 2 * sqrt(PI));
     return 0;
 }
 
@@ -54,16 +52,17 @@ double psisquare(double x) {
 }
 
 double funzione_integranda_numeratore(double x) {
-    return pow(x, 4) * psisquare(x);
+    return pow(x, 2) * psisquare(x);
 }
 
 double funzione_integranda_numeratore2(double x) {
-    return pow(x, 3) * psisquare(x);
+    return x * psisquare(x);
 }
 
 int main(int argc, char const *argv[]) {
     FILE *fileConvergenze;
 
+    printf("%f\n", f(0.190409));
     fileConvergenze = fopen("convergenze.dat", "w");
 
     fprintf(fileConvergenze, "# Newton Secante Bisezione\n");
@@ -81,24 +80,47 @@ int main(int argc, char const *argv[]) {
     }
 
     const char *commands = {
-        "reset"
+        "reset\n"
         "set datafile commentschars '#@&'\n"
-        "set term png\n"
+        "set terminal png size 2048, 1536 font ', 36'\n"
         "set output 'plot.png'\n"
-        "set title 'Convergenza metodi ricerca zeri'\n"
-        "set xrange [1:30]\n"
+        "set key top right\n"
+        "set grid \n"
+        "set tics font ', 36'\n"
+        "set title 'Convergenza metodi ricerca zeri' font ', 50'\n"
+        "set xrange [0:31]\n"
         "set logscale y\n"
         "set xlabel 'Numero iterazioni'\n"
         "set ylabel '(E_{r} - E_{s}) [MeV]'\n"
-        "plot 'convergenze.dat' using 0 : 4 with linespoint title \"Bisezione\","
-        "'' using 0 : 3 with linespoint title \"Secante\","
-        "'' using 0 : 2 with linespoint title \"Newton\""};
+        "plot 'convergenze.dat' using 1 : 4 with linespoint linewidth 3.5 pointsize 4 pointtype 6 title \"Bisezione\","
+        "'' using 1 : 3 with linespoint linewidth 3.5 pointsize 4 pointtype 6 title \"Secante\","
+        "'' using 1 : 2 with linespoint linewidth 3.5 pointsize 4 pointtype 6 title \"Newton\""};
 
     executeGNUPlotCommands(commands);
 
+    const char *commands2 = {
+        "reset\n"
+        "set datafile commentschars '#@&'\n"
+        "set terminal png size 2048, 1536 font ', 36'\n"
+        "set output 'eqtrascendente.png'\n"
+        "set key top right\n"
+        "set grid \n"
+        "set tics font ', 36'\n"
+        "set title 'Stima soluzione equazione trascendente' font ', 50'\n"
+        "set xrange [0:1.5]\n"
+        "set xlabel 'e'\n"
+        "set ylabel 'f(e)'\n"
+        "v = 3.45804\n"
+        "f(x)=1/tan(sqrt(v-x))+sqrt(x/(v-x))\n"
+        "ax=0.190409\n"
+        "ay=0.2\n"
+        "plot f(x) with lines linewidth 3.5 linecolor 'blue' title 'Equazione energie', 'soluzioneEnergia.dat' using 1 : 2 with points linewidth 3.5 pointsize 4 pointtype 6 linecolor 'blue' title 'Stima soluzione'\n"};
+
+    executeGNUPlotCommands(commands2);
+
     // Valor Medio
 
-    double limsupint = 30;
+    double limsupint = 15;
     double norma = integraleSimpson(0, limsupint, 1000, psisquare);
     double media_posizione_quadra = integraleSimpson(0, limsupint, 1000, funzione_integranda_numeratore);
     double media_posizione = integraleSimpson(0, limsupint, 1000, funzione_integranda_numeratore2);
@@ -109,6 +131,11 @@ int main(int argc, char const *argv[]) {
     double sigma = sqrt(media_posizione_quadra_normalizzata - media_posizione_normalizzata * media_posizione_normalizzata);
 
     printf("MEDIA POSIZIONE QUADRA: %f +- %f\n", media_posizione_normalizzata, sigma);
+
+    FILE *plot_psi = fopen("valoriPsi.dat", "w");
+    for (double i = 0; i < 6; i = i + 2.f / 1000.f) {
+        fprintf(plot_psi, "%10.5e %10.5e\n", i, psisquare(i) / norma);
+    }
 
     return 0;
 }

@@ -1,5 +1,4 @@
 #include <stdio.h>
-using namespace std;
 
 void executeGNUPlotCommands(const char *gnuPlotCommand) {
     FILE *gnupipe = NULL;

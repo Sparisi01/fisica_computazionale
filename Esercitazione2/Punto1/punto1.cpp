@@ -45,8 +45,6 @@ int main(int argc, char const* argv[]) {
     printf("(d) trapezi: %10.5e\n", integraleTrapezi(0, B, 100, f_d) - integraleTrapezi(0, B, 41, f_d));
     printf("(d) simpson: %10.5e\n", integraleSimpson(0, B, 100, f_d) - integraleSimpson(0, B, 4, f_d));
 
-
-
     char const* gnuPlotCommands[] = {"plot \"data.tmp\""};
 
     return 0;

@@ -5,8 +5,6 @@
 int main() {
     //! L'errore si ha quando f è 2^n volte più piccolo di 2 dove n è il numero di bit dedicati alla frazione
 
-    float i = 0x11;
-    printf("%f\n", i);
     float f = 2;
     int n_div = 0;
 
@@ -15,7 +13,17 @@ int main() {
         n_div++;
     }
 
-    printf("Errore float: %12.5e con %d divisioni\n", f, n_div);
+    printf("Errore float: %12.5e con %d divisioni\n", pow(2, -n_div), n_div);
+
+    f = 0.6;
+    n_div = 0;
+
+    while (0.6f + f != 0.6f) {
+        f = f / 2.f;
+        n_div++;
+    }
+
+    printf("Errore float: %12.5e con %d divisioni\n", pow(2, -n_div), n_div);
 
     double d = 2;
     n_div = 0;
@@ -23,7 +31,7 @@ int main() {
         d = d / 2.;
         n_div++;
     }
-    printf("Errore double: %12.5e con %d divisioni\n", d, n_div);
+    printf("Errore double: %12.5e con %d divisioni\n", pow(2, -n_div), n_div);
 
     long double l = 2;
     n_div = 0;
