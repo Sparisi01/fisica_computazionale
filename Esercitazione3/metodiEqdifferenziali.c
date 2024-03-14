@@ -70,7 +70,7 @@ int euleroTrapeziOscillatore(vecst* q, double t, int N, FILE* traiettoria) {
     return 1;
 }
 
-int mk4(vecst* q, double h, vecst (*F)(vecst, double*), double* args) {
+int rk4(vecst* q, double h, vecst (*F)(vecst, double*), double* args) {
     double k1, k2, k3, k4, l1, l2, l3, l4;
     vecst tempF;
 
@@ -127,7 +127,7 @@ int main(int argc, char const* argv[]) {
     }
 
     for (size_t j = 0; j < N; j++) {
-        mk4(vector4, h, F, NULL);
+        rk4(vector4, h, F, NULL);
         fprintf(plot_E_mk4, "%10.5E %10.5E %10.5E %10.5E\n", vector4->tempo, vector4->posizione, vector4->velocita, H_oscillatore(*vector4));
     }
 
