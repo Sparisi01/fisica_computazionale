@@ -45,7 +45,7 @@ void radiciStabili(double a, double b, double c, FILE *file) {
 void radiciInstabili1(double a, double b, double c, FILE *file) {
     double x1 = (-b + sqrtl(-4 * a * c + b * b)) / (2 * a);
     double x2 = (-b - sqrtl(-4 * a * c + b * b)) / (2 * a);
-    fprintf(file, "%10.5e %10.5e %10.5e\n", b * b / (4 * a * c), x1, x2);
+    fprintf(file, "%10.5e %10.5e %10.5e %10.5e\n", b * b / (4 * a * c), x1, x2, b * b);
 }
 
 // Metodo instabile, fornisce x1 = inf per b^2 * epsilon = 4ac (x2 se b<0)

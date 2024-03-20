@@ -10,8 +10,7 @@ struct vecst {
 
 typedef struct vecst vecst;
 
-double
-H_oscillatore(vecst q) {
+double H_oscillatore(vecst q) {
     return 0.5 * (pow(q.posizione, 2) + pow(q.velocita, 2));
 }
 
@@ -91,9 +90,11 @@ int rk4(vecst* q, double h, vecst (*F)(vecst, double*), double* args) {
 
     *q = (vecst){
         q->tempo + h,
-        q->posizione + 1 / 6 * (k1 + 2 * k2 + 2 * k3 + k4),
-        q->velocita + 1 / 6 * (l1 + 2 * l2 + 2 * l3 + l4),
+        q->posizione + (k1 + 2 * (k2 + k3) + k4) / 6,
+        q->velocita + (l1 + 2 * (l2 + l3) + l4) / 6,
     };
+
+    printf("%10.5E\n", q->velocita);
 
     return 1;
 }
@@ -101,8 +102,8 @@ int rk4(vecst* q, double h, vecst (*F)(vecst, double*), double* args) {
 vecst F(vecst q, double* parametri) {
     return (vecst){
         q.tempo,
-        -q.posizione,
         q.velocita,
+        -q.posizione,
     };
 }
 

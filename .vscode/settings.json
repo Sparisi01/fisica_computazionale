@@ -4,6 +4,11 @@
         "xstring": "cpp",
         "stdio.h": "c",
         "plot.h": "c",
-        "cmath": "c"
+        "cmath": "c",
+        "iostream": "cpp",
+        "iterator": "cpp",
+        "xmemory": "cpp",
+        "xutility": "cpp",
+        "format": "c"
     }
 }

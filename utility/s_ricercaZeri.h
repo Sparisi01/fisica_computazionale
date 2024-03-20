@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-double ricercaZeriSecante(double x0, double x1, int N, double f(double), double precision = 1e-8, bool verbose = false) {
+double ricercaZeriSecante(double x0, double x1, int N, double f(double), double precision = 1e-7, bool verbose = false) {
     if (f(x0) == 0) return x0;
     if (f(x1) == 0) return x1;
 
@@ -17,10 +17,11 @@ double ricercaZeriSecante(double x0, double x1, int N, double f(double), double 
         count++;
     } while (fabs(x0 - x1) > precision && count < N);
 
+    
     return x2;
 }
 
-double ricercaZeriNewton(double x0, int N, double f(double), double f_prime(double), double precision = 1e-8, bool verbose = false) {
+double ricercaZeriNewton(double x0, int N, double f(double), double f_prime(double), double precision = 1e-7, bool verbose = false) {
     if (f(x0) == 0) return x0;
     double x0_memory = 0;
     double x1 = 0;
@@ -37,7 +38,7 @@ double ricercaZeriNewton(double x0, int N, double f(double), double f_prime(doub
     return x0;
 }
 
-double ricercaZeriBisezione(double x0, double x1, int N, double f(double), double precision = 1e-8, bool verbose = false) {
+double ricercaZeriBisezione(double x0, double x1, int N, double f(double), double precision = 1e-7, bool verbose = false) {
     if (f(x0) == 0) return x0;
     if (f(x1) == 0) return x1;
     if ((f(x0) < 0) - (f(x1) > 0) != 0) return NAN;

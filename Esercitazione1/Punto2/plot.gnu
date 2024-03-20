@@ -15,6 +15,6 @@ set ylabel 'Errore'
 e = exp(1)
 error_double = 1.11e-16
 error_float = 5.96e-08
-f(x) = e*(error_double/x + x/2)
-g(x) = e*(error_float/x + x/2)
+f(x) = e*(error_double + error_double/x + x/2 + 7/4/x*error_double*error_double)
+g(x) = e*(error_float + error_float/x + x/2+ 7/4/x*error_float*error_float)
 plot 'dati_double.dat' using 1 : 2 with linespoints pointtype 6 pointsize 4 linewidth 3.5 linecolor 'red' title 'Doppia precisione', f(x) notitle with lines linewidth 3.5 linecolor 'red', 'dati_float.dat' using 1 : 2 with linespoints pointtype 6 pointsize 4 linewidth 3.5 linecolor 'blue' title 'Singola precisione', g(x) notitle with lines linewidth 3.5 linecolor 'blue'

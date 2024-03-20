@@ -13,11 +13,11 @@
 #define hc 197.327  //[MeV]
 #define M1 939.565  //[MeV]
 #define M2 938.272  //[MeV]
-#define lambda (hc * hc * (M1 + M2)) / (2 * R * R * M1 * M2)
-#define v (V0) / (lambda)
+#define lambda ((hc * hc * (M1 + M2)) / (2 * R * R * M1 * M2))
+#define v ((V0) / (lambda))
 
-#define E -2.11990900
-#define e 0.190409
+// #define E_real -2.11990900
+#define e 0.19040857383288309
 
 #define A 1
 #define precisione 1e-7
@@ -67,16 +67,18 @@ int main(int argc, char const *argv[]) {
 
     fprintf(fileConvergenze, "# Newton Secante Bisezione\n");
 
-    for (size_t n_iterazioni = 1; n_iterazioni < 50; n_iterazioni++) {
-        double e_bisezione = ricercaZeriBisezione(0.1, 3, n_iterazioni, f);
+    double e_real = ricercaZeriBisezione(0.1, 3, 1000, f, 1.0e-11);
+    double E_real = -e_real * lambda;
+    for (size_t n_iterazioni = 1; n_iterazioni < 60; n_iterazioni++) {
+        double e_bisezione = ricercaZeriBisezione(0.1, 3, n_iterazioni, f, 1.0e-11);
         double E_bisezione = -e_bisezione * lambda;
 
-        double e_secante = ricercaZeriSecante(0.1, 3, n_iterazioni, f);
+        double e_secante = ricercaZeriSecante(0.1, 3, n_iterazioni, f, 1.0e-11);
         double E_secante = -e_secante * lambda;
 
-        double e_newton = ricercaZeriNewton(0.1, n_iterazioni, f, f_derivate);
+        double e_newton = ricercaZeriNewton(0.1, n_iterazioni, f, f_derivate, 1.0e-11);
         double E_newton = -e_newton * lambda;
-        fprintf(fileConvergenze, "%d %10.5e %10.5e %10.5e\n", n_iterazioni, fabs(E - E_newton), fabs(E - E_secante), fabs(E - E_bisezione));
+        fprintf(fileConvergenze, "%d %10.15e %10.15e %10.15e\n", n_iterazioni, fabs(E_real - E_newton), fabs(E_real - E_secante), fabs(E_real - E_bisezione));
     }
 
     const char *commands = {
@@ -88,13 +90,13 @@ int main(int argc, char const *argv[]) {
         "set grid \n"
         "set tics font ', 36'\n"
         "set title 'Convergenza metodi ricerca zeri' font ', 50'\n"
-        "set xrange [0:31]\n"
+        "set xrange [0:40]\n"
         "set logscale y\n"
         "set xlabel 'Numero iterazioni'\n"
         "set ylabel '(E_{r} - E_{s}) [MeV]'\n"
         "plot 'convergenze.dat' using 1 : 4 with linespoint linewidth 3.5 pointsize 4 pointtype 6 title \"Bisezione\","
-        "'' using 1 : 3 with linespoint linewidth 3.5 pointsize 4 pointtype 6 title \"Secante\","
-        "'' using 1 : 2 with linespoint linewidth 3.5 pointsize 4 pointtype 6 title \"Newton\""};
+        "'' every ::0::7  using 1 : 3 with linespoint linewidth 3.5 pointsize 4 pointtype 6 title \"Secante\","
+        "'' every ::0::5 using 1 : 2 with linespoint linewidth 3.5 pointsize 4 pointtype 6 title \"Newton\""};
 
     executeGNUPlotCommands(commands);
 
@@ -107,20 +109,22 @@ int main(int argc, char const *argv[]) {
         "set grid \n"
         "set tics font ', 36'\n"
         "set title 'Stima soluzione equazione trascendente' font ', 50'\n"
-        "set xrange [0:1.5]\n"
+        "set xrange [0:3]\n"
         "set xlabel 'e'\n"
         "set ylabel 'f(e)'\n"
         "v = 3.45804\n"
         "f(x)=1/tan(sqrt(v-x))+sqrt(x/(v-x))\n"
         "ax=0.190409\n"
         "ay=0.2\n"
-        "plot f(x) with lines linewidth 3.5 linecolor 'blue' title 'Equazione energie', 'soluzioneEnergia.dat' using 1 : 2 with points linewidth 3.5 pointsize 4 pointtype 6 linecolor 'blue' title 'Stima soluzione'\n"};
+        "plot f(x) with lines linewidth 3.5 linecolor 'blue' title 'Equazione (10)', 'soluzioneEnergia.dat' using 1 : 2 with points linewidth 3.5 pointsize 4 pointtype 6 linecolor 'blue' title 'Stima soluzione',"
+        "1/tan(sqrt(v-x)) with lines linewidth 3.5 linecolor 'red' title 'Cotangente',"
+        "-sqrt(x/(v-x)) with lines linewidth 3.5 linecolor 'green' title 'Radice' \n"};
 
     executeGNUPlotCommands(commands2);
 
     // Valor Medio
 
-    double limsupint = 15;
+    double limsupint = 25;
     double norma = integraleSimpson(0, limsupint, 1000, psisquare);
     double media_posizione_quadra = integraleSimpson(0, limsupint, 1000, funzione_integranda_numeratore);
     double media_posizione = integraleSimpson(0, limsupint, 1000, funzione_integranda_numeratore2);
