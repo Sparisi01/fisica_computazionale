@@ -9,6 +9,9 @@
         "iterator": "cpp",
         "xmemory": "cpp",
         "xutility": "cpp",
-        "format": "c"
+        "format": "c",
+        "fstream": "cpp",
+        "iosfwd": "cpp",
+        "ostream": "cpp"
     }
 }
