@@ -9,7 +9,21 @@ struct vec3 {
     double y;
 };
 
+struct vecMR {
+    double R;
+    double M;
+};
+
 using namespace std;
+
+int euleroEsplicito(vec3* q, double h, vec3 (*F)(vec3, double*), double* args) {
+    *q = vec3{
+        q->t + h,
+        q->x + h * F(*q, args).x,
+        q->y + h * F(*q, args).y,
+    };
+    return 1;
+}
 
 int rk4(vec3* q, double h, vec3 (*F)(vec3, double*), double* args) {
     double k1, k2, k3, k4, l1, l2, l3, l4;
@@ -52,18 +66,43 @@ vec3 F(vec3 q, double* parameters) {
 }
 
 #define PI 3.141592653
-#define N 10000
+#define C 299792458
 #define R_max 10.
 #define R0 (1 / sqrt(4 * PI * 197.327 * 6.67259 * 0.16 * 938.565 * 1e-45) * 1e-18)  // R0 in km
 #define M0 (1 / sqrt(4 * PI * 0.16 * 938.565 * pow(197.327 * 6.67259 * 1e-45, 3)))  // M0 in Mev / c^2
+
+vecMR find_M_R_mk4(double h, int N_steps, double P_center, vec3* q, double* par_star) {
+    double last_r = INFINITY;
+    double last_m = INFINITY;
+    for (size_t j = 0; j < N_steps; j++) {
+        last_r = q->t;
+        last_m = q->x;
+        rk4(q, h, F, par_star);
+        if (isnan(q->y) || q->y <= 0) break;
+    }
+
+    return vecMR{.R = last_r, .M = last_m};
+}
+
+vecMR find_M_R_eulero(double h, int N_steps, double P_center, vec3* q, double* par_star) {
+    double last_r = INFINITY;
+    double last_m = INFINITY;
+    for (size_t j = 0; j < N_steps; j++) {
+        last_r = q->t;
+        last_m = q->x;
+        euleroEsplicito(q, h, F, par_star);
+        if (isnan(q->y) || q->y <= 0) break;
+    }
+
+    return vecMR{.R = last_r, .M = last_m};
+}
 
 int main(int argc, char const* argv[]) {
     ofstream radius_mass_data1("dati_stelle1.dat");
     ofstream radius_mass_data2("dati_stelle2.dat");
     ofstream radius_mass_data3("dati_stelle3.dat");
 
-    double h = R_max / N;
-    double P_center = pow(2, -10);
+    double P_center;
 
     double par_star_1[] = {/*k*/ 0.05, /*Gamma*/ 5. / 3.};
     double par_star_2[] = {0.1, 4. / 3.};
@@ -71,53 +110,46 @@ int main(int argc, char const* argv[]) {
 
     int N_stars = 20;
 
-    double last_r = INFINITY;
-    double last_m = INFINITY;
+    double N_h = 100;
+    double N_k = 100;
 
-    // Stelle tipo 1
-    for (size_t i = 0; i < N_stars; i++) {
-        vec3 initialCondition = {/*Raggio zero*/ 0.01, /*Massa a raggio 0*/ 0, /*Pressione a raggio 0*/ P_center *= 2};
-        vec3* q = &initialCondition;
-        for (size_t j = 0; j < N; j++) {
-            last_r = q->t;
-            last_m = q->x;
-            rk4(q, h, F, par_star_1);
-            if (isnan(q->y) || q->y <= 0) break;
-        }
-        radius_mass_data1 << last_r << " " << last_m << endl;
-    }
+    double h = R_max / N_h;
+    double k = R_max / N_k;
 
-    // Stelle tipo 2
+    bool mk4_end = false;
+    bool eulero_end = false;
+
+    vecMR star_MR_mk4_last = {.R = INFINITY, .M = INFINITY};
+    vecMR star_MR_eulero_last = {.R = INFINITY, .M = INFINITY};
+
     P_center = pow(2, -10);
-    for (size_t i = 0; i < N_stars; i++) {
-        vec3 initialCondition = {/*Raggio zero*/ 0.01, /*Massa a raggio 0*/ 0, /*Pressione a raggio 0*/ P_center *= 2};
+    while (!eulero_end || !mk4_end) {
+        vec3 initialCondition = {.t = 0.001, .x = 0, .y = P_center};
         vec3* q = &initialCondition;
-        for (size_t j = 0; j < N; j++) {
-            last_r = q->t;
-            last_m = q->x;
-            rk4(q, h, F, par_star_2);
-            if (isnan(q->y) || q->y <= 0) break;
+        if (!mk4_end) {
+            vecMR star_MR_mk4 = find_M_R_mk4(h /= 2, N_h *= 2, P_center, q, par_star_1);
+            if (sqrt(pow(star_MR_mk4.M - star_MR_mk4_last.M, 2) + pow(star_MR_mk4.R - star_MR_mk4_last.R, 2)) < 1e-6) {
+                std::cout << "Step mk4: " << h << endl;
+                mk4_end = true;
+            }
+            star_MR_mk4_last.M = star_MR_mk4.M;
+            star_MR_mk4_last.R = star_MR_mk4.R;
         }
-        radius_mass_data2 << last_r << " " << last_m << endl;
+        if (!eulero_end) {
+            initialCondition = {.t = 0.001, .x = 0, .y = P_center};
+            vecMR star_MR_eulero = find_M_R_eulero(k /= 2, N_k *= 2, P_center, q, par_star_1);
+            if (sqrt(pow(star_MR_eulero.M - star_MR_eulero_last.M, 2) + pow(star_MR_eulero.R - star_MR_eulero_last.R, 2)) < 1e-6) {
+                std::cout << "Step eulero: " << k << endl;
+                eulero_end = true;
+            }
+            star_MR_eulero_last.M = star_MR_eulero.M;
+            star_MR_eulero_last.R = star_MR_eulero.R;
+        }
     }
 
-    // Stelle tipo 3
-    P_center = pow(2, -17);
-    for (size_t i = 0; i < N_stars; i++) {
-        vec3 initialCondition = {/*Raggio zero*/ 0.01, /*Massa a raggio 0*/ 0, /*Pressione a raggio 0*/ P_center *= 2};
-        vec3* q = &initialCondition;
-        for (size_t j = 0; j < N; j++) {
-            last_r = q->t;
-            last_m = q->x;
-            rk4(q, h, F, par_star_3);
-            if (isnan(q->y) || q->y <= 0) break;
-        }
-        radius_mass_data3 << last_r << " " << last_m << endl;
-    }
-
-    cout << "Valore di R0: " << R0 << " [km]" << endl
-         << "Valore di M0: " << M0 << " [MeV*c^-2]" << endl
-         << "Valore di M0: " << (M0 / 299792458 / 299792458) * (1.602 * 1e-13) << " [Kg]" << endl;
+    std::cout << "Valore di R0: " << R0 << " [km]" << endl
+              << "Valore di M0: " << M0 << " [MeV*c^-2]" << endl
+              << "Valore di M0: " << (M0 * pow(C, -2)) * (1.602 * 1E-13) << " [Kg]" << endl;
 
     return 0;
 }

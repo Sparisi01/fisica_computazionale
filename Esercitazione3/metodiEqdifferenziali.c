@@ -19,8 +19,8 @@ int euleroEsplicito(vecst* q, double t, int N, vecst (*F)(vecst, double*), doubl
     for (size_t i = 0; i < N; i++) {
         *q = (vecst){
             q->tempo + h,
-            q->posizione + h * F(*q, args).velocita,
-            q->velocita + h * F(*q, args).posizione,
+            q->posizione + h * F(*q, args).posizione,
+            q->velocita + h * F(*q, args).velocita,
         };
         fprintf(traiettoria, "%10.5E %10.5E %10.5E %10.5E\n", q->tempo, q->posizione, q->velocita, H_oscillatore(*q));
     }
@@ -31,8 +31,8 @@ int euleroEsplicito(vecst* q, double t, int N, vecst (*F)(vecst, double*), doubl
 int euleroEsplicitoStep(vecst* q, double h, vecst (*F)(vecst, double*), double* args) {
     *q = (vecst){
         q->tempo + h,
-        q->posizione + h * F(*q, args).velocita,
-        q->velocita + h * F(*q, args).posizione,
+        q->posizione + h * F(*q, args).posizione,
+        q->velocita + h * F(*q, args).velocita,
     };
     return 1;
 }
@@ -94,8 +94,6 @@ int rk4(vecst* q, double h, vecst (*F)(vecst, double*), double* args) {
         q->velocita + (l1 + 2 * (l2 + l3) + l4) / 6,
     };
 
-    printf("%10.5E\n", q->velocita);
-
     return 1;
 }
 
@@ -126,6 +124,8 @@ int main(int argc, char const* argv[]) {
         euleroEsplicitoStep(vector1, h, F, NULL);
         fprintf(plot_E_esplicito, "%10.5E %10.5E %10.5E %10.5E\n", vector1->tempo, vector1->posizione, vector1->velocita, H_oscillatore(*vector1));
     }
+
+    // euleroEsplicito(vector1, T, N, F, NULL, plot_E_esplicito);
 
     for (size_t j = 0; j < N; j++) {
         rk4(vector4, h, F, NULL);
