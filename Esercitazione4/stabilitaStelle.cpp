@@ -97,18 +97,15 @@ vecMR find_M_R_eulero(double h, int N_steps, double P_center, vec3* q, double* p
     return vecMR{.R = last_r, .M = last_m};
 }
 
-int main(int argc, char const* argv[]) {
-    ofstream radius_mass_data1("dati_stelle1.dat");
-    ofstream radius_mass_data2("dati_stelle2.dat");
-    ofstream radius_mass_data3("dati_stelle3.dat");
+int convergenza(double precisione = 1E-6) {
+    ofstream convergenza_rk4("convergenza_rk4.dat");
+    ofstream convergenza_eulero("convergenza_eulero.dat");
 
     double P_center;
 
     double par_star_1[] = {/*k*/ 0.05, /*Gamma*/ 5. / 3.};
     double par_star_2[] = {0.1, 4. / 3.};
     double par_star_3[] = {0.01, 2.54};
-
-    int N_stars = 20;
 
     double N_h = 100;
     double N_k = 100;
@@ -128,7 +125,9 @@ int main(int argc, char const* argv[]) {
         vec3* q = &initialCondition;
         if (!mk4_end) {
             vecMR star_MR_mk4 = find_M_R_mk4(h /= 2, N_h *= 2, P_center, q, par_star_1);
-            if (sqrt(pow(star_MR_mk4.M - star_MR_mk4_last.M, 2) + pow(star_MR_mk4.R - star_MR_mk4_last.R, 2)) < 1e-6) {
+            double diff = sqrt(pow(star_MR_mk4.M - star_MR_mk4_last.M, 2) + pow(star_MR_mk4.R - star_MR_mk4_last.R, 2));
+            convergenza_rk4 << h << " " << diff << endl;
+            if (diff < precisione) {
                 std::cout << "Step mk4: " << h << endl;
                 mk4_end = true;
             }
@@ -138,7 +137,9 @@ int main(int argc, char const* argv[]) {
         if (!eulero_end) {
             initialCondition = {.t = 0.001, .x = 0, .y = P_center};
             vecMR star_MR_eulero = find_M_R_eulero(k /= 2, N_k *= 2, P_center, q, par_star_1);
-            if (sqrt(pow(star_MR_eulero.M - star_MR_eulero_last.M, 2) + pow(star_MR_eulero.R - star_MR_eulero_last.R, 2)) < 1e-6) {
+            double diff = sqrt(pow(star_MR_eulero.M - star_MR_eulero_last.M, 2) + pow(star_MR_eulero.R - star_MR_eulero_last.R, 2));
+            convergenza_eulero << k << " " << diff << endl;
+            if (diff < precisione) {
                 std::cout << "Step eulero: " << k << endl;
                 eulero_end = true;
             }
@@ -146,10 +147,41 @@ int main(int argc, char const* argv[]) {
             star_MR_eulero_last.R = star_MR_eulero.R;
         }
     }
+    return 1;
+}
+
+int soluzioni(const char* filename, double* parStar, double P_center) {
+    ofstream file(filename);
+    int N_steps = 10000;
+    double h = R_max / N_steps;
+
+    vec3 initialCondition = {.t = 0.001, .x = 0, .y = P_center};
+    vec3* q = &initialCondition;
+
+    for (size_t j = 0; j < N_steps; j++) {
+        rk4(q, h, F, parStar);
+        if (isnan(q->y) || q->y <= 0) break;
+        file << q->t << " "
+             << " " << q->x << " " << q->y << endl;
+    }
+    return 1;
+}
+
+int main(int argc, char const* argv[]) {
+    // Convergenza
+    //convergenza(1E-6);
+
+    // Draw soluzioni
+    double par_star_1[] = {/*k*/ 0.05, /*Gamma*/ 5. / 3.};
+    double par_star_2[] = {0.1, 4. / 3.};
+    double par_star_3[] = {0.01, 2.54};
+    soluzioni("stella1.dat", par_star_1, 4);
+    soluzioni("stella2.dat", par_star_2, 4);
+    soluzioni("stella3.dat", par_star_3, 4);
 
     std::cout << "Valore di R0: " << R0 << " [km]" << endl
-              << "Valore di M0: " << M0 << " [MeV*c^-2]" << endl
-              << "Valore di M0: " << (M0 * pow(C, -2)) * (1.602 * 1E-13) << " [Kg]" << endl;
+              << "Valore di M0: " << M0 << " [MeV*c^-2]"
+              << "oppure " << (M0 * pow(C, -2)) * (1.602 * 1E-13) << " [Kg]" << endl;
 
     return 0;
 }
