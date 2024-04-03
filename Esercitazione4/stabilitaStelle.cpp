@@ -207,7 +207,7 @@ int main(int argc, char const* argv[]) {
     vec3 initialCondition;
     vecMR v_MR_R;
     vecMR v_MR_NR;
-    for (double P_center = 0.2; P_center < 30; P_center += 0.2) {
+    for (double P_center = pow(2, -30); P_center < pow(2, 30); P_center *= 2) {
         // Stella 1
         initialCondition = {.t = 0.001, .x = 0, .y = P_center};
         v_MR_NR = find_M_R_mk4(1e-4, 1e4 * R_max, &initialCondition, F_NR, par_star_1);
