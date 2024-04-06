@@ -10,8 +10,8 @@ struct vec3 {
 };
 
 struct vecMR {
-    double R;
     double M;
+    double R;
 };
 
 using namespace std;
