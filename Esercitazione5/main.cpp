@@ -36,7 +36,7 @@ struct System {
 #define PRINT_POSITIONS 0               //
 #define PRINT_START_POSITIONS 0         //
 
-void verlet(System &system, double dt, Vec3 *(*F)(const System &, double *), double *args) {
+void verletPropagator(System &system, double dt, Vec3 *(*F)(const System &, double *), double *args) {
     Vec3 *oldForces = system.forces;
     // Update position of all particles based on forces
     for (size_t i = 0; i < system.N_particles; i++) {
@@ -210,12 +210,13 @@ void printCMVelocity(const System &system, FILE *file = stdout) {
     fprintf(stdout, "%10.15E %10.15E %10.15E\n", CM_x / system.N_particles, CM_y / system.N_particles, CM_z / system.N_particles);
 }
 
-int main(int argc, char const *argv[]) {
+void gasSimulation() {
     double t0 = 0.;    // Time zero simulation
     double tf = 1.;    // Time final simulation
     double dt = 1e-4;  // Time interval
     double N_time_steps = (tf - t0) / dt;
     srand(SEED);
+
     // FILES
     FILE *starting_postions_file = fopen("./data/starting_pos.dat", "w");
     FILE *particle_data_file = fopen("./data/particles_data.dat", "w");
@@ -264,7 +265,7 @@ int main(int argc, char const *argv[]) {
             fprintf(particle_data_file, "\n");
         }
 
-        verlet(system, dt, getForcesLennarJones, NULL);
+        verletPropagator(system, dt, getForcesLennarJones, NULL);
     }
 
     if (PRINT_THERMO) {
@@ -278,5 +279,31 @@ int main(int argc, char const *argv[]) {
 
     free(temperature_array);
     free(pressure_array);
-    return 0;
+}
+
+void armonicOscillator() {
+    double t0 = 0.;
+    double tf = 50.;
+    double dt = 1e-3;
+    int N_steps = (tf - t0) / dt;
+
+    FILE *armonicOscillator_verlet_file = fopen("./data/armonic_oscillator_velret.dat", "w");
+
+    System system;
+    system.N_particles = 1;
+    system.particles = (Particle *)malloc(sizeof(Particle));
+    system.particles[0].pos = Vec3{.x = 0, .y = 0, .z = 0};
+    system.particles[0].vel = Vec3{.x = 1, .y = 0, .z = 0};
+    system.particles[0].mass = 1;
+    double k[] = {1, 1, 1};
+    system.forces = getForcesOscillatore(system, k);
+    for (size_t i = 0; i < N_steps; i++) {
+        verletPropagator(system, dt, getForcesOscillatore, k);
+        fprintf(armonicOscillator_verlet_file, "%f %f %f\n", system.t, system.particles[0].pos.x, system.particles[0].vel.x);
+    }
+}
+
+int main(int argc, char const *argv[]) {
+    gasSimulation();
+    // armonicOscillator();
 }
