@@ -20,21 +20,31 @@ struct System {
     Vec3 *forces;
 };
 
-#define PI 3.1315926535897932384626433  // To much accurate PI
-#define SEED 9                          // Seed for random number generation
-#define NEAREST_NEIGHBORS 1             // Choose how many boxes to keep in the lattice during interaction calculation
-#define TEMP_IN 1.                      // Initial temperature
-#define SIGMA_VELOCITIES sqrt(TEMP_IN)  //
-#define N_PARTICLE 100                  //
-#define SIGMA 1.                        // Distance scale
-#define EPSILON 1.                      // Energy scale
-#define DENSITY 1.2                     //
-#define MASS 1.                         //
-#define VOLUME (N_PARTICLE / DENSITY)   // Volume of a single cell (Volume in unit of sigma^3)
-#define L cbrt(VOLUME)                  //
-#define PRINT_THERMO 1                  //
-#define PRINT_POSITIONS 0               //
-#define PRINT_START_POSITIONS 0         //
+// TEMP - RHO - M - N_CELLS - TIME_CUT
+// 1.06 - 1.2 - 4 - 4 - 0.4
+//
+//
+//
+
+#define PI 3.14159265359
+#define SEED 9
+#define TEMP_IN 2.
+#define SIGMA_VELOCITIES sqrt(TEMP_IN)
+// UNITÀ DI MISURA
+#define SIGMA 1.
+#define EPSILON 1.
+#define MASS 1.
+// STRUTTURA RETICOLO
+#define M 4  // M=1 CC, M=2 BCC, M=4 FCC
+#define N_CELLS 4
+#define DENSITY 1.2
+#define N_PARTICLES pow(N_CELLS, 3) * M
+#define VOLUME (N_PARTICLES / DENSITY)
+#define L cbrt(VOLUME)
+// OUTPUT
+#define PRINT_THERMO 1
+#define PRINT_POSITIONS 0
+#define PRINT_START_POSITIONS 1
 
 void verletPropagator(System &system, double dt, Vec3 *(*F)(const System &, double *), double *args) {
     Vec3 *oldForces = system.forces;
@@ -92,6 +102,10 @@ Vec3 *getForcesOscillatore(const System &system, double *args) {
     return forces;
 }
 
+double lennarJonesPotential(double r) {
+    return 4 * EPSILON * (pow(SIGMA / r, 12) - pow(SIGMA / r, 6));
+}
+
 Vec3 *getForcesLennarJones(const System &system, double *args) {
     struct Vec3 *forces = (Vec3 *)calloc(system.N_particles, sizeof(struct Vec3));
     for (size_t i = 0; i < system.N_particles - 1; i++) {
@@ -100,9 +114,10 @@ Vec3 *getForcesLennarJones(const System &system, double *args) {
             double r_square = particlesSquareDistance(system.particles[i], system.particles[j]);
             double r = sqrt(r_square);
             Vec3 r_dir_ij = particlesVersor(system.particles[i], system.particles[j]);
-            double F_magnitude = 24 * EPSILON * SIGMA / r_square * (2 * pow(SIGMA / r, 11) - pow(SIGMA / r, 5));
+            // double F_magnitude = 24 * EPSILON * SIGMA / r_square * (2 * pow(SIGMA / r, 11) - pow(SIGMA / r, 5));
+            double h = 1e-8;
+            double F_magnitude = -(lennarJonesPotential(r + h) - lennarJonesPotential(r - h)) / (2 * h);
             Vec3 force_ij = {r_dir_ij.x * F_magnitude, r_dir_ij.y * F_magnitude, r_dir_ij.z * F_magnitude};
-
             // --------------------------------
             forces[i].x += force_ij.x;
             forces[i].y += force_ij.y;
@@ -117,44 +132,53 @@ Vec3 *getForcesLennarJones(const System &system, double *args) {
     return forces;
 }
 
-double getRNDVelocity(double sigma) {
+double getRNDVelocity() {
     double x = rand() / (RAND_MAX + 1.);
 
     double tmp;
     if (1 - x == 1) {
-        tmp = sigma * sqrt(-2 * log1p(x));
+        tmp = SIGMA_VELOCITIES * sqrt(-2 * log1p(x));
     } else {
-        tmp = sigma * sqrt(-2 * log(1 - x));
+        tmp = SIGMA_VELOCITIES * sqrt(-2 * log(1 - x));
     }
     return tmp * cos(2 * PI * x);
 }
 
 // Initialize velocities
-void initVelocities(System &system, double sigma) {
+void initVelocities(System &system) {
     for (size_t i = 0; i < system.N_particles; i += 1) {
-        system.particles[i].vel.x = getRNDVelocity(sigma);
-        system.particles[i].vel.y = getRNDVelocity(sigma);
-        system.particles[i].vel.z = getRNDVelocity(sigma);
+        system.particles[i].vel.x = getRNDVelocity();
+        system.particles[i].vel.y = getRNDVelocity();
+        system.particles[i].vel.z = getRNDVelocity();
     }
 }
 
 // Initialize positions in a cubic lattice
-void initPositions(System &system, int N_particle) {
-    double N_seg_particle = ceil(cbrt(N_particle));
+void initPositions(System &system) {
+    Vec3 lattice_positions[M];
+    switch (M) {
+        case 1:  // CC
+            lattice_positions[0] = {.x = 0, .y = 0, .z = 0};
+        case 2:  // BCC
+            lattice_positions[0] = {.x = 0, .y = 0, .z = 0};
+            lattice_positions[1] = {.x = 0.5, .y = 0.5, .z = 0.5};
+        case 4:  // FCC
+            lattice_positions[0] = {.x = 0, .y = 0, .z = 0};
+            lattice_positions[1] = {.x = 0, .y = 0.5, .z = 0.5};
+            lattice_positions[2] = {.x = 0.5, .y = 0.5, .z = 0};
+            lattice_positions[3] = {.x = 0.5, .y = 0, .z = 0.5};
+            break;
+        default:
+            break;
+    }
 
-    // Correzione per lasciare metà delle superfici vuote sul cubo in
-    // modo da evitare la sovrapposizione tra le particelle e provocare
-    // una distanza reciproca nulla
-    double jump = L / (N_seg_particle + 1);
-
+    double jump = L / N_CELLS;
     int q = 0;
-    for (size_t i = 0; i < N_seg_particle; i++) {
-        for (size_t j = 0; j < N_seg_particle; j++) {
-            for (size_t k = 0; k < N_seg_particle; k++) {
-                if (q == N_particle) {
-                    return;
-                } else {
-                    system.particles[q].pos = Vec3{.x = i * jump, .y = j * jump, .z = k * jump};
+    for (size_t i = 0; i < N_CELLS; i++) {
+        for (size_t j = 0; j < N_CELLS; j++) {
+            for (size_t k = 0; k < N_CELLS; k++) {
+                for (size_t w = 0; w < M; w++) {
+                    system.particles[q].pos = Vec3{.x = (i + lattice_positions[w].x) * jump, .y = (j + lattice_positions[w].y) * jump, .z = (k + lattice_positions[w].z) * jump};
                     q++;
                 }
             }
@@ -162,23 +186,23 @@ void initPositions(System &system, int N_particle) {
     }
 }
 
-double mean_array(const double *array, int len) {
+double mean_array(const double *array, int len, int first) {
     double sum = 0;
-    for (size_t i = 0; i < len; i++) {
+    for (size_t i = first; i < len; i++) {
         sum += array[i];
     }
 
-    return sum / len;
+    return sum / (len - first);
 }
 
-double var_array(const double *array, int len) {
-    double mean = mean_array(array, len);
+double var_array(const double *array, int len, int first) {
+    double mean = mean_array(array, len, first);
     double sum = 0;
-    for (size_t i = 0; i < len; i++) {
+    for (size_t i = first; i < len; i++) {
         sum += pow(array[i] - mean, 2);
     }
 
-    return sum / len;
+    return sum / (len - first);
 }
 
 double TQ_Temperature(const System &system) {
@@ -191,12 +215,14 @@ double TQ_Temperature(const System &system) {
     return sum / (3 * system.N_particles);
 }
 
+double dotProduct(Vec3 a, Vec3 b) {
+    return a.x * b.x + a.y * b.y + a.z * b.z;
+}
 double TQ_Pressure(const System &system) {
     return 0;
 }
 
 void printCMVelocity(const System &system, FILE *file = stdout) {
-    // Verifica pos centro di massa
     double CM_x = 0;
     double CM_y = 0;
     double CM_z = 0;
@@ -213,7 +239,7 @@ void printCMVelocity(const System &system, FILE *file = stdout) {
 void gasSimulation() {
     double t0 = 0.;    // Time zero simulation
     double tf = 1.;    // Time final simulation
-    double dt = 1e-4;  // Time interval
+    double dt = 1e-3;  // Time interval
     double N_time_steps = (tf - t0) / dt;
     srand(SEED);
 
@@ -225,16 +251,17 @@ void gasSimulation() {
     // SYSTEM INITIALIZATION
     System system;
     system.t = t0;
-    system.N_particles = N_PARTICLE;
+    system.N_particles = N_PARTICLES;
     system.particles = (Particle *)malloc(sizeof(Particle) * system.N_particles);
 
     for (size_t i = 0; i < system.N_particles; i++) {
         system.particles[i].mass = MASS;
     }
 
-    initVelocities(system, SIGMA_VELOCITIES);
-
-    initPositions(system, system.N_particles);
+    printf("Velocities inizialized\n");
+    initVelocities(system);
+    printf("Positions inizialized\n");
+    initPositions(system);
 
     system.forces = getForcesLennarJones(system, NULL);
 
@@ -251,13 +278,9 @@ void gasSimulation() {
     // System evolution
     for (size_t i = 0; i < N_time_steps; i++) {
         // printCMVelocity(&system);
-
-        // Calculate thermodinamics variables
         temperature_array[i] = TQ_Temperature(system);
         pressure_array[i] = TQ_Pressure(system);
-
         if (PRINT_POSITIONS) {
-            // Print particles info
             fprintf(particle_data_file, "%f ", system.t);
             for (size_t i = 0; i < system.N_particles; i++) {
                 fprintf(particle_data_file, "%f %f %f %f %f %f ", system.particles[i].pos.x, system.particles[i].pos.y, system.particles[i].pos.z, system.particles[i].vel.x, system.particles[i].vel.y, system.particles[i].vel.z);
@@ -272,9 +295,9 @@ void gasSimulation() {
         for (size_t i = 0; i < N_time_steps; i++) {
             fprintf(termo_data_file, "%f %f %f\n", t0 + i * dt, temperature_array[i], pressure_array[i]);
         }
-
-        printf("Temperatura: %f +- %f\n", mean_array(temperature_array, N_time_steps), sqrt(var_array(temperature_array, N_time_steps)));
-        printf("Pressione: %f +- %f\n", mean_array(pressure_array, N_time_steps), sqrt(var_array(pressure_array, N_time_steps)));
+        int f_step = round(0.4 / dt);
+        printf("Temperatura: %f +- %f\n", mean_array(temperature_array, N_time_steps, f_step), sqrt(var_array(temperature_array, N_time_steps, f_step)));
+        printf("Pressione: %f +- %f\n", mean_array(pressure_array, N_time_steps, f_step), sqrt(var_array(pressure_array, N_time_steps, f_step)));
     }
 
     free(temperature_array);
@@ -283,7 +306,7 @@ void gasSimulation() {
 
 void armonicOscillator() {
     double t0 = 0.;
-    double tf = 50.;
+    double tf = 1.;
     double dt = 1e-3;
     int N_steps = (tf - t0) / dt;
 
