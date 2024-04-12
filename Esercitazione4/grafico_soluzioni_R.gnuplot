@@ -5,7 +5,7 @@ set ylabel font ", 12"
 set xlabel font ", 12"
 set key right
 set key box lt -1 lw 1
-set key spacing 2 font "Helvetica, 12"
+set key spacing 2 font ", 12"
 set grid
 set ytics nomirror
 set xtics nomirror

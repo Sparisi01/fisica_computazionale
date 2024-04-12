@@ -68,16 +68,17 @@ vec3 F_NR(vec3 q, double* parameters) {
 
 vec3 F_R(vec3 q, double* parameters) {
     double current_density = density(q.y, parameters[0], parameters[1]);
+    double energy = current_density + parameters[0] * pow(current_density, parameters[1]);
     return vec3{
         q.t,
-        pow(q.t, 2) * current_density,
-        -(q.y + current_density) * (q.x + pow(q.t, 3) * q.y) / (pow(q.t, 2) - 2 * q.t * q.x),
+        pow(q.t, 2) * energy,
+        -(q.y + energy) * (q.x + pow(q.t, 3) * q.y) / (pow(q.t, 2) - 2 * q.t * q.x),
     };
 }
 
 #define PI 3.141592653
 #define C 299792458
-#define R_max 10.
+#define R_max 100.
 #define R0 (1 / sqrt(4 * PI * 197.327 * 6.67259 * 0.16 * 938.565 * 1e-45) * 1e-18)  // R0 in km
 #define M0 (1 / sqrt(4 * PI * 0.16 * 938.565 * pow(197.327 * 6.67259 * 1e-45, 3)))  // M0 in Mev / c^2
 
@@ -85,10 +86,10 @@ vecMR find_M_R_mk4(double h, int N_steps, vec3* q, vec3 (*F)(vec3, double*), dou
     double last_r = INFINITY;
     double last_m = INFINITY;
     for (size_t j = 0; j < N_steps; j++) {
-        last_r = q->t;
-        last_m = q->x;
         rk4(q, h, F, par_star);
         if (isnan(q->y) || q->y <= 0) break;
+        last_r = q->t;
+        last_m = q->x;
     }
 
     return vecMR{.R = last_r, .M = last_m};
@@ -98,10 +99,10 @@ vecMR find_M_R_eulero(double h, int N_steps, vec3* q, vec3 (*F)(vec3, double*), 
     double last_r = INFINITY;
     double last_m = INFINITY;
     for (size_t j = 0; j < N_steps; j++) {
-        last_r = q->t;
-        last_m = q->x;
         euleroEsplicito(q, h, F_NR, par_star);
         if (isnan(q->y) || q->y <= 0) break;
+        last_r = q->t;
+        last_m = q->x;
     }
 
     return vecMR{.R = last_r, .M = last_m};
@@ -120,8 +121,10 @@ int convergenza(double precisione = 1E-6) {
     double N_h = 100;
     double N_k = 100;
 
-    double h = R_max / N_h;
-    double k = R_max / N_k;
+    /*     double h = R_max / N_h;
+        double k = R_max / N_k; */
+    double h = 0.5;
+    double k = 0.5;
 
     bool mk4_end = false;
     bool eulero_end = false;
@@ -147,7 +150,10 @@ int convergenza(double precisione = 1E-6) {
         if (!eulero_end) {
             initialCondition = {.t = 0.001, .x = 0, .y = P_center};
             vecMR star_MR_eulero = find_M_R_eulero(k /= 2, N_k *= 2, q, F_NR, par_star_1);
-            double diff = sqrt(pow(star_MR_eulero.M - star_MR_eulero_last.M, 2) + pow(star_MR_eulero.R - star_MR_eulero_last.R, 2));
+            // printf("%f", star_MR_eulero.M);
+            //  double diff = sqrt(pow(star_MR_eulero.M - star_MR_eulero_last.M, 2) + pow(star_MR_eulero.R - star_MR_eulero_last.R, 2));
+            double diff = fabs(star_MR_eulero.M - star_MR_eulero_last.M) + fabs(star_MR_eulero.R - star_MR_eulero_last.R);
+            // double diffM = star_MR_eulero.M - star_MR_eulero_last.M
             convergenza_eulero << k << " " << diff << endl;
             if (diff < precisione) {
                 std::cout << "Step eulero: " << k << endl;
@@ -178,10 +184,13 @@ int soluzioni(const char* filename, double P_center, vec3 (*F)(vec3, double*), d
 }
 
 int main(int argc, char const* argv[]) {
-    // Convergenza
-    // convergenza(1E-6);
+    double M0_ = 13.6558;
+    double R0_ = 20.0615;
 
-    double par_star_1[] = {/*k*/ 0.05, /*Gamma*/ 5. / 3.};
+    // Convergenza
+    convergenza(1E-6);
+
+    double par_star_1[] = {0.05, 5. / 3.};
     double par_star_2[] = {0.1, 4. / 3.};
     double par_star_3[] = {0.01, 2.54};
 
@@ -210,28 +219,28 @@ int main(int argc, char const* argv[]) {
     for (double P_center = pow(2, -30); P_center < pow(2, 30); P_center *= 2) {
         // Stella 1
         initialCondition = {.t = 0.001, .x = 0, .y = P_center};
-        v_MR_NR = find_M_R_mk4(1e-4, 1e4 * R_max, &initialCondition, F_NR, par_star_1);
+        v_MR_NR = find_M_R_mk4(1e-3, 1e3 * R_max, &initialCondition, F_NR, par_star_1);
         initialCondition = {.t = 0.001, .x = 0, .y = P_center};
-        v_MR_R = find_M_R_mk4(1e-4, 1e4 * R_max, &initialCondition, F_R, par_star_1);
+        v_MR_R = find_M_R_mk4(1e-3, 1e3 * R_max, &initialCondition, F_R, par_star_1);
 
         P_M_R_1_file
-            << P_center << " " << v_MR_NR.M << " " << v_MR_NR.R << " " << v_MR_R.M << " " << v_MR_R.R << endl;
+            << P_center << " " << v_MR_NR.M * M0_ << " " << v_MR_NR.R * R0_ << " " << v_MR_R.M * M0_ << " " << v_MR_R.R * R0_ << endl;
         // Stella 2
         initialCondition = {.t = 0.001, .x = 0, .y = P_center};
-        v_MR_NR = find_M_R_mk4(1e-4, 1e4 * R_max, &initialCondition, F_NR, par_star_2);
+        v_MR_NR = find_M_R_mk4(1e-3, 1e3 * R_max, &initialCondition, F_NR, par_star_2);
         initialCondition = {.t = 0.001, .x = 0, .y = P_center};
-        v_MR_R = find_M_R_mk4(1e-4, 1e4 * R_max, &initialCondition, F_R, par_star_2);
+        v_MR_R = find_M_R_mk4(1e-3, 1e3 * R_max, &initialCondition, F_R, par_star_2);
 
         P_M_R_2_file
-            << P_center << " " << v_MR_NR.M << " " << v_MR_NR.R << " " << v_MR_R.M << " " << v_MR_R.R << endl;
+            << P_center << " " << v_MR_NR.M * M0_ << " " << v_MR_NR.R * R0_ << " " << v_MR_R.M * M0_ << " " << v_MR_R.R * R0_ << endl;
         // Stella 3
         initialCondition = {.t = 0.001, .x = 0, .y = P_center};
-        v_MR_NR = find_M_R_mk4(1e-4, 1e4 * R_max, &initialCondition, F_NR, par_star_3);
+        v_MR_NR = find_M_R_mk4(1e-3, 1e3 * R_max, &initialCondition, F_NR, par_star_3);
         initialCondition = {.t = 0.001, .x = 0, .y = P_center};
-        v_MR_R = find_M_R_mk4(1e-4, 1e4 * R_max, &initialCondition, F_R, par_star_3);
+        v_MR_R = find_M_R_mk4(1e-3, 1e3 * R_max, &initialCondition, F_R, par_star_3);
 
         P_M_R_3_file
-            << P_center << " " << v_MR_NR.M << " " << v_MR_NR.R << " " << v_MR_R.M << " " << v_MR_R.R << endl;
+            << P_center << " " << v_MR_NR.M * M0_ << " " << v_MR_NR.R * R0_ << " " << v_MR_R.M * M0_ << " " << v_MR_R.R * R0_ << endl;
     }
 
     std::cout << "Valore di R0: " << R0 << " [km]" << endl
