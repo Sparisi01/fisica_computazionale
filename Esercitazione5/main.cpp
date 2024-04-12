@@ -63,8 +63,8 @@ struct System {
 // STRUTTURA RETICOLO
 #define M 4  // M=1 CC, M=2 BCC, M=4 FCC
 #define N_CELLS 4
-// #define DENSITY 1.2 // Solido
-// #define DENSITY 0.8  // Liquido
+// #define DENSITY 1.2  // Solido
+//  #define DENSITY 0.8  // Liquido
 #define DENSITY 0.01  // Gas
 #define N_PARTICLES pow(N_CELLS, 3) * M
 #define VOLUME (N_PARTICLES / DENSITY)
@@ -249,7 +249,7 @@ void printCMVelocity(const System &system, FILE *file = stdout) {
 
 void distribuzioneRadiale(const System &system, FILE *file) {
     double max_radius = L / 2 * sqrt(3);
-    double N_intervals = 300;
+    double N_intervals = 100;
     double radius_interval = max_radius / N_intervals;
     int *counting_array = (int *)calloc(sizeof(int), N_intervals);
     // -----------------------------------
@@ -265,10 +265,9 @@ void distribuzioneRadiale(const System &system, FILE *file) {
             int n_radius_jump = (int)round(r / radius_interval);
             counting_array[n_radius_jump]++;
         }
-
-        for (size_t i = 0; i < N_intervals; i++) {
-            fprintf(file, "%f %f\n", i * radius_interval, (double)(counting_array[i]) / (DENSITY * system.N_particles));
-        }
+    }
+    for (size_t i = 0; i < N_intervals; i++) {
+        fprintf(file, "%f %f\n", i * radius_interval * 2 / L, (double)(counting_array[i]) / (DENSITY * system.N_particles * (4 * PI / 3) * (pow((i + 1) * radius_interval, 3) - pow(i * radius_interval, 3))));
     }
 }
 
@@ -283,7 +282,7 @@ void gasSimulation() {
     FILE *starting_postions_file = fopen("./data/starting_pos.dat", "w");
     FILE *particle_data_file = fopen("./data/particles_data.dat", "w");
     FILE *termo_data_file = fopen("./data/termo_data.dat", "w");
-    FILE *distribuzioneRadiale_file = fopen("./data/distribuzione_radiale.dat", "w");
+    FILE *distribuzioneRadiale_file = fopen("./data/distribuzione_radiale_gas.dat", "w");
     // SYSTEM INITIALIZATION
     System system;
     system.t = t0;
