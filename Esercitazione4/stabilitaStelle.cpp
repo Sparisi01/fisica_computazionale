@@ -195,13 +195,13 @@ int main(int argc, char const* argv[]) {
     double par_star_3[] = {0.01, 2.54};
 
     // Draw soluzioni eq differenziale
-    /* soluzioni("./data/sol_stella_1_NR.dat", 4, F_NR, par_star_1);
-    soluzioni("./data/sol_stella_2_NR.dat", 4, F_NR, par_star_2);
-    soluzioni("./data/sol_stella_3_NR.dat", 4, F_NR, par_star_3);
+    soluzioni("./data/sol_stella_1_NR.dat", 1, F_NR, par_star_1);
+    soluzioni("./data/sol_stella_2_NR.dat", 1, F_NR, par_star_2);
+    soluzioni("./data/sol_stella_3_NR.dat", 1, F_NR, par_star_3);
 
-    soluzioni("./data/sol_stella_1_R.dat", 4, F_R, par_star_1);
-    soluzioni("./data/sol_stella_2_R.dat", 4, F_R, par_star_2);
-    soluzioni("./data/sol_stella_3_R.dat", 4, F_R, par_star_3); */
+    soluzioni("./data/sol_stella_1_R.dat", 1, F_R, par_star_1);
+    soluzioni("./data/sol_stella_2_R.dat", 1, F_R, par_star_2);
+    soluzioni("./data/sol_stella_3_R.dat", 1, F_R, par_star_3);
 
     // M R al variare della pressione
     ofstream P_M_R_1_file("./data/P_M_R_1.dat");

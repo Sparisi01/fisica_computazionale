@@ -71,6 +71,7 @@ struct InitialCondition {
 // STRUTTURA RETICOLO
 #define M 4  // M=1 CC, M=2 BCC, M=4 FCC
 #define N_CELLS 4
+#define FREQ 0
 // OUTPUT
 #define PRINT_THERMO 1
 
@@ -98,7 +99,8 @@ void verletPropagator(System &system, double dt, Vec3 *(*F)(System &, double *),
     }
 
     system.forces = newForces;
-    free(oldForces);
+    // free(oldForces);
+    // oldForces = NULL;
 }
 
 Vec3 *getForcesOscillatore(System &system, double *args) {
@@ -275,18 +277,30 @@ void distribuzioneRadiale(const System &system, FILE *file) {
     }
 }
 
+void termostatoAnderson(System &system, double freq, double dt, double sigma_velocities) {
+    int n_particles_to_reset = floor(system.N_particles * freq * dt);
+
+    for (size_t i = 0; i < n_particles_to_reset; i++) {
+        int index = rand() / (RAND_MAX + 1.) * system.N_particles;
+        system.particles[index].vel.x = getRNDVelocity(sigma_velocities);
+        system.particles[index].vel.y = getRNDVelocity(sigma_velocities);
+        system.particles[index].vel.z = getRNDVelocity(sigma_velocities);
+    }
+}
+
 void gasSimulation() {
     //------------------------------------
-    const int n_init = 8;
+    const int n_init = 2;
     InitialCondition init_conditions[n_init] = {
         {.densita = 1.2, .temperatura = 2, .stampa = 1, .file_name_g = "./data/distribuzione_radiale_solido.dat", .file_name_thermo = "./data/thermo_solido.dat"},
         {.densita = 0.001, .temperatura = 1, .stampa = 1, .file_name_g = "./data/distribuzione_radiale_gas.dat", .file_name_thermo = "./data/thermo_gas.dat"},
-        {.densita = 0.8, .temperatura = 1.8, .stampa = 1, .file_name_g = "./data/distribuzione_radiale_liquido.dat", .file_name_thermo = "./data/thermo_liquido.dat"},
-        {.densita = 0.7, .temperatura = 1.8, .stampa = 0, .file_name_thermo = ""},
+        //{.densita = 0.8, .temperatura = 1.8, .stampa = 1, .file_name_g = "./data/distribuzione_radiale_liquido.dat", .file_name_thermo = "./data/thermo_liquido.dat"},
+        /* {.densita = 0.7, .temperatura = 1.8, .stampa = 0, .file_name_thermo = ""},
         {.densita = 0.2, .temperatura = 1.2, .stampa = 0, .file_name_thermo = ""},
         {.densita = 0.4, .temperatura = 1.2, .stampa = 0, .file_name_thermo = ""},
         {.densita = 0.01, .temperatura = 1, .stampa = 0, .file_name_thermo = ""},
-        {.densita = 0.5, .temperatura = 1.5, .stampa = 0, .file_name_thermo = ""}};
+        {.densita = 0.5, .temperatura = 1.5, .stampa = 0, .file_name_thermo = ""} */
+    };
     // -----------------------------------
     int N_PARTICLES = pow(N_CELLS, 3) * M;
     double t0 = 0.;    // Time zero simulation
@@ -332,11 +346,11 @@ void gasSimulation() {
 
         // System evolution
         for (size_t i = 0; i < N_time_steps; i++) {
-            // printCMVelocity(&system);
             temperature_array[i] = TQ_Temperature(system);
             pressure_array[i] = TQ_Pressure(system);
             verletPropagator(system, dt, getForcesLennarJones, NULL);
-            // printf("Energy: %f\n", system.kinetic_en + system.pot_en);
+            termostatoAnderson(system, FREQ, dt, sigma_velocities);
+            //  printf("Energy: %f\n", system.kinetic_en + system.pot_en);
         }
 
         int f_step = round(0.4 / dt);
@@ -352,9 +366,6 @@ void gasSimulation() {
         printf("Pressione: %f +- %f\n", mean_array(pressure_array, N_time_steps, f_step), sqrt(var_array(pressure_array, N_time_steps, f_step)));
 
         fprintf(p_t_ro, "%f, %f, %f\n", system.densita, mean_array(temperature_array, N_time_steps, f_step), mean_array(pressure_array, N_time_steps, f_step));
-
-        free(temperature_array);
-        free(pressure_array);
     }
 }
 
