@@ -5,26 +5,25 @@
 using namespace std;
 
 class Libro {
-   private:
-    string titolo;
-
    public:
-    Libro(string titolo) {
-        this->titolo = titolo;
+    int titolo;
+    string titolo2;
+    Libro(int titolo) {
+        this->titolo = 0;
+        this->titolo2 = "";
     }
-    string toString() {
+    int toString() {
         return this->titolo;
     }
 };
 
 int main(int argc, char const* argv[]) {
     string test = "ciao";
-    Libro l(test);
+    Libro l(0);
 
-    cout << test << endl;
-    cout << l.toString() << endl;
+    printf("%d", sizeof(l.titolo));
 
-    test = test.append("wow");
+    printf("Dimensione titolo %d", sizeof(l));
 
     return 0;
 }

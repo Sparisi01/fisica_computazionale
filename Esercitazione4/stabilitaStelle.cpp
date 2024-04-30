@@ -77,10 +77,12 @@ vec3 F_R(vec3 q, double* parameters) {
 }
 
 #define PI 3.141592653
+// #define PI 3.14
 #define C 299792458
 #define R_max 100.
 #define R0 (1 / sqrt(4 * PI * 197.327 * 6.67259 * 0.16 * 938.565 * 1e-45) * 1e-18)  // R0 in km
-#define M0 (1 / sqrt(4 * PI * 0.16 * 938.565 * pow(197.327 * 6.67259 * 1e-45, 3)))  // M0 in Mev / c^2
+// #define M0 (1 / sqrt(4 * PI * 0.16 * 938.565 * pow(197.327 * 6.67259 * 1e-45, 3)))  // M0 in Mev / c^2
+#define M0 (R0 / (197.327 * 6.67259 * 1e-63 * 4*PI))
 
 vecMR find_M_R_mk4(double h, int N_steps, vec3* q, vec3 (*F)(vec3, double*), double* par_star) {
     double last_r = INFINITY;
@@ -188,7 +190,7 @@ int main(int argc, char const* argv[]) {
     double R0_ = 20.0615;
 
     // Convergenza
-    convergenza(1E-6);
+    // convergenza(1E-6);
 
     double par_star_1[] = {0.05, 5. / 3.};
     double par_star_2[] = {0.1, 4. / 3.};
