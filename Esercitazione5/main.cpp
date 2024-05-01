@@ -306,19 +306,21 @@ void termostatoAMoltiplicatore(System &system, double aim_temperature) {
 
 void gasSimulation() {
     //------------------------------------
-    const int n_init = 11;
+    const int n_init = 13;
     InitialCondition init_conditions[n_init] = {
         {.densita = 1.2, .temperatura = 2, .stampa = 1, .file_name_g = "./data/distribuzione_radiale_solido.dat", .file_name_thermo = "./data/thermo_solido.dat"},
         {.densita = 0.01, .temperatura = 1, .stampa = 1, .file_name_g = "./data/distribuzione_radiale_gas.dat", .file_name_thermo = "./data/thermo_gas.dat"},
         {.densita = 0.8, .temperatura = 1.8, .stampa = 1, .file_name_g = "./data/distribuzione_radiale_liquido.dat", .file_name_thermo = "./data/thermo_liquido.dat"},
-        {.densita = 0.7, .temperatura = 1.8, .stampa = 0, .file_name_thermo = ""},
+        {.densita = 0.7, .temperatura = 1.7, .stampa = 0, .file_name_thermo = ""},
         {.densita = 0.6, .temperatura = 1.3, .stampa = 0, .file_name_thermo = ""},
         {.densita = 1, .temperatura = 1.3, .stampa = 0, .file_name_thermo = ""},
-        {.densita = 0.5, .temperatura = 0.8, .stampa = 0, .file_name_thermo = ""},
+        {.densita = 0.75, .temperatura = 1.8, .stampa = 0, .file_name_thermo = ""},
         {.densita = 0.2, .temperatura = 0.6, .stampa = 0, .file_name_thermo = ""},
         {.densita = 0.4, .temperatura = 0.65, .stampa = 0, .file_name_thermo = ""},
         {.densita = 0.001, .temperatura = 1, .stampa = 0, .file_name_thermo = ""},
-        {.densita = 0.5, .temperatura = 0.9, .stampa = 0, .file_name_thermo = ""}};
+        {.densita = 0.5, .temperatura = 0.9, .stampa = 0, .file_name_thermo = ""},
+        {.densita = 0.3, .temperatura = 0.57, .stampa = 0, .file_name_thermo = ""},
+        {.densita = 0.25, .temperatura = 0.55, .stampa = 0, .file_name_thermo = ""}};
     // -----------------------------------
     int N_PARTICLES = pow(N_CELLS, 3) * M;
     double t0 = 0.;    // Time zero simulation
