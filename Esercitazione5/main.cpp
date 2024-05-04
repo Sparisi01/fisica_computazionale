@@ -6,7 +6,7 @@
 #include <iostream>
 
 using namespace std;
-using namespace std::chrono;
+
 struct Vec3
 {
     double x, y, z;
@@ -46,12 +46,12 @@ struct InitialCondition
 #define SEED 3
 
 // UNITÀ DI MISURA
-#define SIGMA 1
+#define SIGMA 1.
 #define EPSILON 1.
 #define MASS 1.
 // STRUTTURA RETICOLO
 #define M 4       // M=1 CC, M=2 BCC, M=4 FCC
-#define N_CELLS 4 // Numero celle per lato
+#define N_CELLS 5 // Numero celle per lato
 #define FREQ 0    // Frequenza termostato, 0 disattivato
 // OUTPUT
 #define PRINT_THERMO 1
@@ -88,7 +88,6 @@ void verletPropagator(System &system, double dt, Vec3 *(*F)(System &, double *),
 
     system.forces = newForces;
     free(oldForces);
-    // oldForces = NULL;
 }
 
 /* Vec3 *getForcesOscillatore(System &system, double *args)
@@ -180,6 +179,7 @@ double getRNDVelocity(double SIGMA_VELOCITIES)
 // Initialize velocities
 void initVelocities(System &system, double SIGMA_VELOCITIES)
 {
+    srand(SEED);
     for (size_t i = 0; i < system.N_particles; i += 1)
     {
         system.particles[i].vel.x = getRNDVelocity(SIGMA_VELOCITIES);
@@ -314,11 +314,11 @@ void printPositions(const System &system, FILE *file)
 void gasSimulation()
 {
     //------------------------------------
-    const int n_init = 1;
+    const int n_init = 3;
     InitialCondition init_conditions[n_init] = {
-        //{.densita = 1.2, .temperatura = 2.1, .stampa = 1, .file_name_g = "./data/distribuzione_radiale_solido.dat", .file_name_thermo = "./data/thermo_solido.dat"},
+        {.densita = 1.2, .temperatura = 2.1, .stampa = 1, .file_name_g = "./data/distribuzione_radiale_solido.dat", .file_name_thermo = "./data/thermo_solido.dat"},
         {.densita = 0.01, .temperatura = 1.1, .stampa = 1, .file_name_g = "./data/distribuzione_radiale_gas.dat", .file_name_thermo = "./data/thermo_gas.dat"},
-        //{.densita = 0.8, .temperatura = 1.9, .stampa = 1, .file_name_g = "./data/distribuzione_radiale_liquido.dat", .file_name_thermo = "./data/thermo_liquido.dat"},
+        {.densita = 0.8, .temperatura = 1.9, .stampa = 1, .file_name_g = "./data/distribuzione_radiale_liquido.dat", .file_name_thermo = "./data/thermo_liquido.dat"},
         /* {.densita = 0.7, .temperatura = 1.5, .stampa = 0, .file_name_thermo = ""},
         {.densita = 0.6, .temperatura = 1.15, .stampa = 0, .file_name_thermo = ""},
         {.densita = 0.1, .temperatura = 0.7, .stampa = 0, .file_name_thermo = ""},
@@ -348,20 +348,20 @@ void gasSimulation()
     // LOOP over all init conditions
     for (size_t i = 0; i < n_init; i++)
     {
-        srand(SEED);
+
         FILE *distribuzioneRadiale_file = fopen(init_conditions[i].file_name_g, "w");
         FILE *termo_data_file = fopen(init_conditions[i].file_name_thermo, "w");
         //  Struttura sistema
         system.densita = init_conditions[i].densita;
-        double volume = (system.N_particles / system.densita);
-        double L = cbrt(volume);
+        double volume = (system.N_particles / system.densita); // Cell volume
+        double L = cbrt(volume);                               // Cell length
         system.volume = volume;
         system.L = L;
         system.particles = (Particle *)malloc(sizeof(Particle) * system.N_particles);
 
-        // Temperature
         double sigma_velocities = sqrt(init_conditions[i].temperatura);
 
+        // Init masses
         for (size_t j = 0; j < system.N_particles; j++)
         {
             system.particles[j].mass = MASS;
@@ -379,6 +379,7 @@ void gasSimulation()
         system.forcesWork = (double *)calloc(system.N_particles, sizeof(double));
         system.forces = getForcesLennarJones(system, NULL);
         printf("Avvio simulazione con %d particelle\n", system.N_particles);
+
         // Initialize thermodinamic variables arrays
         double *temperature_array = (double *)malloc(sizeof(double) * N_time_steps);
         double *pressure_array = (double *)malloc(sizeof(double) * N_time_steps);
@@ -386,15 +387,17 @@ void gasSimulation()
 
         // System evolution
 
-        int f_step = round(3 / dt);
-        double max_radius = system.L;
-        double N_intervals = 600;
+        int f_step = round(3 / dt);   // Primo step da cui iniziare a fare statistica
+        double max_radius = system.L; // Raggio massimo g(r)
+        double N_intervals = 600;     // N bins
         double radius_interval = max_radius / N_intervals;
-        int *counting_array = (int *)calloc(sizeof(int), N_intervals);
-        int n_g_rad_done = 0;
+
+        int *counting_array = (int *)calloc(sizeof(int), N_intervals); // Array di bin per tenere traccia della densità radiale
+        int n_g_rad_done = 0;                                          // Numero di densità radiali calcolare, usato per la normalizzazione della g
 
         for (size_t j = 0; j < N_time_steps; j++)
         {
+            // Thermodinamic at time t
             temperature_array[j] = TQ_Temperature(system);
             pressure_array[j] = TQ_Pressure(system);
             energy_array[j] = system.kinetic_en + system.pot_en;
@@ -413,6 +416,7 @@ void gasSimulation()
             //  termostatoAMoltiplicatore(system, init_conditions[i].temperatura);
             //     printf("Energy: %f\n", system.kinetic_en + system.pot_en);
 
+            // Compute g(r,t), only after thermalization
             if (j > f_step && init_conditions[i].stampa)
             {
                 n_g_rad_done++;
