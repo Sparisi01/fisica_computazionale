@@ -27,7 +27,7 @@ set grid
 
 
 # Plot data
-plot "../data/pressione_temperatura_rho.dat" using 1:3 w lp ps 1 pt 5 notitle
+plot "../data/pressione_temperatura_rho.dat" using 1:3 w p ps 1 pt 5 notitle
 # Add more data sets as needed
 
 # Add legend

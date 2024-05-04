@@ -82,7 +82,7 @@ vec3 F_R(vec3 q, double* parameters) {
 #define R_max 100.
 #define R0 (1 / sqrt(4 * PI * 197.327 * 6.67259 * 0.16 * 938.565 * 1e-45) * 1e-18)  // R0 in km
 // #define M0 (1 / sqrt(4 * PI * 0.16 * 938.565 * pow(197.327 * 6.67259 * 1e-45, 3)))  // M0 in Mev / c^2
-#define M0 (R0 / (197.327 * 6.67259 * 1e-63 * 4*PI))
+#define M0 (R0 / (197.327 * 6.67259 * 1e-63 * 4 * PI))
 
 vecMR find_M_R_mk4(double h, int N_steps, vec3* q, vec3 (*F)(vec3, double*), double* par_star) {
     double last_r = INFINITY;
@@ -168,6 +168,40 @@ int convergenza(double precisione = 1E-6) {
     return 1;
 }
 
+void graficoDavide() {
+    printf("Inizio grafico davide\n");
+    double par_star_1[] = {0.1, 4. / 3.};
+    double P_center = pow(2, -10);
+    vec3 initialCondition = {.t = 0.001, .x = 0, .y = P_center};
+    vec3* q = &initialCondition;
+    double h_start = 1e-6;
+    double h_fin = 1e3;
+    int N_steps = R_max / h_start;
+    double r_real_rk = find_M_R_mk4(h_start, N_steps, q, F_NR, par_star_1).R;
+    initialCondition = {.t = 0.001, .x = 0, .y = P_center};
+    q = &initialCondition;
+    double r_real_eu = find_M_R_eulero(h_start, N_steps, q, F_NR, par_star_1).R;
+    int N_H = 3000;
+
+    FILE* file = fopen("./data/filegraficodavide.dat", "w");
+    for (size_t i = 0; i < N_H; i++) {
+        double h = (h_fin - h_start) / N_H * i + h_start;
+        vec3 initialCondition = {.t = 0.001, .x = 0, .y = P_center};
+        vec3* q = &initialCondition;
+        int N_steps = R_max / h;
+
+        double r_rk = find_M_R_mk4(h, N_steps, q, F_NR, par_star_1).R;
+        initialCondition = {.t = 0.001, .x = 0, .y = P_center};
+        q = &initialCondition;
+
+        double r_eu = find_M_R_eulero(h, N_steps, q, F_NR, par_star_1).R;
+
+        fprintf(file, "%lf %lf %lf\n", r_real_eu - r_eu, r_real_rk - r_rk, h / h_start);
+    }
+
+    printf("Fine grafico davide\n");
+}
+
 int soluzioni(const char* filename, double P_center, vec3 (*F)(vec3, double*), double* parStar) {
     ofstream file(filename);
     int N_steps = 10000;
@@ -191,7 +225,7 @@ int main(int argc, char const* argv[]) {
 
     // Convergenza
     // convergenza(1E-6);
-
+    graficoDavide();
     double par_star_1[] = {0.05, 5. / 3.};
     double par_star_2[] = {0.1, 4. / 3.};
     double par_star_3[] = {0.01, 2.54};

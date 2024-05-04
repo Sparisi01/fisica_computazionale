@@ -16,7 +16,7 @@ set rmargin at screen 0.95
 
 set multiplot layout 3,1
 set tmargin at screen 0.9
-set xrange [0:1.7]
+set xrange [0:1]
 set grid
 set xtics 0.1
 set ytics 0.5
