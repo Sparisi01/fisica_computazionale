@@ -16,9 +16,9 @@ set rmargin at screen 0.95
 
 set multiplot layout 3,1
 set tmargin at screen 0.9
-set xrange [0:1]
+#set xrange [0:1]
 set grid
-set xtics 0.1
+
 set ytics 0.5
 set format x ""
 set title "Funzione densità radiale" font ",16"
@@ -26,17 +26,25 @@ set title "Funzione densità radiale" font ",16"
 set style line 1 lc rgb '#0060ad' lt 1 lw 2 pt 7 ps 0.5
 set style line 2 lc rgb '#dd181f' lt 1 lw 2 pt 5 ps 0.5
 
+#gas f
+f(x) = exp(-((4*((1/x**12) - (1/x**6)))-0.01)/1.15)
+set xrange [0:1.5]
 set y2label "GAS"
-plot "../data/distribuzione_radiale_gas.dat" using 1:2 with boxes t "ρ = 0.01" lc 1
+plot "../data/distribuzione_radiale_gas.dat" using 1:3 with l t "ρ = 0.01" lc 1, \
+f(x) t "Peso di Boltzman"
 unset ylabel
 unset tmargin
 set y2label "LIQUIDO"
 unset title
-plot "../data/distribuzione_radiale_liquido.dat" using 1:2 with boxes t "ρ = 0.8" lc 2
+set yrange [0:3]
+
+
+plot "../data/distribuzione_radiale_liquido.dat" using 2:3 with l t "ρ = 0.8" lc 2
 set xlabel 'Raggio in unità di L/2'
 unset format x
 set ytics 1
 set y2label "SOLIDO"
-plot "../data/distribuzione_radiale_solido.dat" using 1:2 with boxes t "ρ = 1.2" lc 7
+set yrange [0:6]
+plot "../data/distribuzione_radiale_solido.dat" using 2:3 with l t "ρ = 1.2" lc 7
 
 

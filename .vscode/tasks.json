@@ -10,7 +10,7 @@
         "${file}",
         "-o",
         "${fileDirname}\\${fileBasenameNoExtension}.exe",
-        "-O3"
+        "-O0"
       ],
       "options": {
         "cwd": "${fileDirname}"
@@ -29,7 +29,7 @@
         "${file}",
         "-o",
         "${fileDirname}\\${fileBasenameNoExtension}.exe",
-        "-O3"
+        "-O0"
       ],
       "options": {
         "cwd": "C:\\msys64\\mingw64\\bin"

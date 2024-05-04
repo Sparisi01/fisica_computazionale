@@ -12,7 +12,7 @@ set grid
 set lmargin at screen 0.15
 set rmargin at screen 0.95
 set xrange [-0.1:1.2]
-set yrange [0:3]
+
 set xlabel 'Densità' font ",14"
 set ylabel 'Compressibilità' font ",14"
 set title "Compressibilità in funzione della densità" font ",16"
