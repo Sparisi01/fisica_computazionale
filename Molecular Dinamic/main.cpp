@@ -2,15 +2,26 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <chrono>
-#include <iostream>
+// TEMP - RHO - M - N_CELLS - TIME_CUT - TEq
+// 2 - 1.2 - 4 - 4 - 0.4 - 1.062724
 
-using namespace std;
+#define PI 3.14159265359
+#define SEED 3
+
+// Units
+#define SIGMA 1.
+#define EPSILON 1.
+#define MASS 1.
+// Lattice structure
+#define M 4       // M=1 CC, M=2 BCC, M=4 FCC
+#define N_CELLS 5 // Numero celle per lato
+#define FREQ 0    // Frequenza termostato, 0 disattivato
 
 struct Vec3
 {
     double x, y, z;
 };
+
 struct Particle
 {
     Vec3 pos, vel; // Particle pos and vel vector
@@ -45,23 +56,6 @@ struct Thermodinamics
     double mean_P, sigma_P;
     double mean_E, sigma_E;
 };
-
-// TEMP - RHO - M - N_CELLS - TIME_CUT - TEq
-// 2 - 1.2 - 4 - 4 - 0.4 - 1.062724
-
-#define PI 3.14159265359
-#define SEED 3
-
-// UNITÀ DI MISURA
-#define SIGMA 1.
-#define EPSILON 1.
-#define MASS 1.
-// STRUTTURA RETICOLO
-#define M 4       // M=1 CC, M=2 BCC, M=4 FCC
-#define N_CELLS 5 // Numero celle per lato
-#define FREQ 0    // Frequenza termostato, 0 disattivato
-// OUTPUT
-#define PRINT_THERMO 1
 
 void verletPropagator(System &system, double dt, Vec3 *(*F)(System &, double *), double *args)
 {
@@ -115,6 +109,11 @@ double lennarJonesPotential(const System &system, double r)
 Vec3 *getForcesLennarJones(System &system, double *args)
 {
     struct Vec3 *forces = (Vec3 *)calloc(system.N_particles, sizeof(struct Vec3));
+    if (!forces)
+    {
+        perror("Error allocating forces array in function getForcesLennarJones.");
+        exit(EXIT_FAILURE);
+    }
 
     for (size_t i = 0; i < system.N_particles; i++)
     {
@@ -309,12 +308,11 @@ void writePositions(const System &system, FILE *file)
 
 Thermodinamics gasSimulation(InitialCondition init_condition)
 {
-
     // -----------------------------------
     int N_PARTICLES = pow(N_CELLS, 3) * M;
     const double t0 = 0.;   // Time zero simulation
     const double tf = 6.;   // Time final simulation
-    const double dt = 1e-2; // Time interval
+    const double dt = 1e-3; // Time interval
     const double N_time_steps = (tf - t0) / dt;
 
     // SYSTEM INITIALIZATION
@@ -418,7 +416,7 @@ Thermodinamics gasSimulation(InitialCondition init_condition)
                     double x = (p1.x - system.particles[k].pos.x) - system.L * rint((p1.x - system.particles[k].pos.x) / system.L);
                     double y = (p1.y - system.particles[k].pos.y) - system.L * rint((p1.y - system.particles[k].pos.y) / system.L);
                     double z = (p1.z - system.particles[k].pos.z) - system.L * rint((p1.z - system.particles[k].pos.z) / system.L);
-                    double r = sqrt(pow(x, 2) + pow(y, 2) + pow(z, 2));
+                    double r = sqrt(x * x + y * y + z * z);
                     int n_radius_jump = (int)round(r / radius_interval);
                     counting_array[n_radius_jump]++;
                 }
@@ -494,11 +492,11 @@ int main(int argc, char const *argv[])
     {
         printf("-----------------------\n");
         printf("Starting simulation: %d/%d\n", i + 1, n_init);
+        printf("Density: %lf\n", init_conditions[i].densita);
 
         Thermodinamics thermo = gasSimulation(init_conditions[i]);
 
-        printf("-----------------------\n");
-        printf("Temperature:%f +- %f\n", thermo.mean_T, thermo.sigma_T);
+        printf("Temperature: %f +- %f\n", thermo.mean_T, thermo.sigma_T);
         printf("Compressibility: %f +- %f\n", thermo.mean_P, thermo.sigma_P);
         printf("Energy: %f +- %f\n", thermo.mean_E, thermo.sigma_E);
 

@@ -4,7 +4,7 @@
 
 # Set terminal to PNG or PDF for high-quality output
 set terminal pngcairo size 800,600 enhanced font 'Helvetica,12'
-set output 'compressibilita.png'
+set output './png/compressibilita.png'
 
 set tmargin at screen 0.9
 # Set title and labels

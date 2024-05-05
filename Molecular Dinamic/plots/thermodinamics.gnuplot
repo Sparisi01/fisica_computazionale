@@ -3,9 +3,9 @@ set terminal pngcairo size 800,600 enhanced font 'Helvetica,14'
 # set terminal pdfcairo size 8cm,6cm font 'Arial,10'
 
 # Set output file name
-set output 'termodinamica.png'
+set output './png/termodinamica.png'
 set arrow 1 from 3, graph 0 to 3, graph 1 nohead lt 8 lw 1 dt 2
-set xrange [0:10]
+set xrange [0:6]
 
 
 set grid

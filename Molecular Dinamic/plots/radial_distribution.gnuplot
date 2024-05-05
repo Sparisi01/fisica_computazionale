@@ -7,7 +7,7 @@ set terminal pngcairo size 800,600 enhanced font 'Helvetica,14'
 # set terminal pdfcairo size 8cm,6cm font 'Arial,10'
 
 # Set output file name
-set output 'distribuzione_radiale.png'
+set output './png/distribuzione_radiale.png'
 # For PDF output, change the file extension to '.pdf'
 set ylabel "Densità radiale g(r)" offset -2,-9.6
 
