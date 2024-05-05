@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-// TEMP - RHO - M - N_CELLS - TIME_CUT - TEq
+// TEMP - RHO - M - N_CELL_PER_ROW - TIME_CUT - TEq
 // 2 - 1.2 - 4 - 4 - 0.4 - 1.062724
 
 #define PI 3.14159265359
@@ -13,9 +13,9 @@
 #define EPSILON 1.
 #define MASS 1.
 // Lattice structure
-#define M 4       // M=1 CC, M=2 BCC, M=4 FCC
-#define N_CELLS 5 // Numero celle per lato
-#define FREQ 0    // Frequenza termostato, 0 disattivato
+#define M 4              // M=1 CC, M=2 BCC, M=4 FCC
+#define N_CELL_PER_ROW 6 //
+#define FREQ 0           // Frequenza termostato, 0 disattivato
 
 struct Vec3
 {
@@ -24,21 +24,21 @@ struct Vec3
 
 struct Particle
 {
-    Vec3 pos, vel; // Particle pos and vel vector
-    double mass;   // Particle mass
+    Vec3 pos, vel; //
+    double mass;   //
 };
 
 struct System
 {
-    double t;            // Time
-    int N_particles;     // Number of particles
-    Particle *particles; // Vector of particle
-    Vec3 *forces;        // Force[i] vector acting on particle[i]
-    double *forcesWork;  // Sum of all internal force work ΣFᵢ(t)∙rᵢ(t)
-    double kinetic_en;   // Kinetic_energy(t)
-    double pot_en;       // U(t)
-    double density;      // Particles density N_particles/(L*L*L)
-    double L;            // Box lenght
+    double t;                //
+    int N_particles;         //
+    Particle *particles;     //
+    Vec3 *forces;            // Force[i] vector acting on particle[i]
+    double *forcesWork;      // Sum of all internal force work ΣFᵢ(t)∙rᵢ(t)
+    double kinetic_energy;   //
+    double potential_energy; //
+    double density;          //
+    double L;                // Box lenght
 };
 
 struct InitialCondition
@@ -54,14 +54,15 @@ struct Thermodinamics
 {
     double mean_T, sigma_T;
     double mean_P, sigma_P;
+    double mean_C, sigma_C;
     double mean_E, sigma_E;
 };
 
 void verletPropagator(System &system, double dt, Vec3 *(*F)(System &, double *), double *args)
 {
 
-    system.kinetic_en = 0;
-    system.pot_en = 0;
+    system.kinetic_energy = 0;
+    system.potential_energy = 0;
 
     Vec3 *oldForces = system.forces;
     // Aggiorna posizioni di tutte le particelle
@@ -80,9 +81,9 @@ void verletPropagator(System &system, double dt, Vec3 *(*F)(System &, double *),
     //  Aggiorna velocità
     for (size_t i = 0; i < system.N_particles; i++)
     {
-        system.kinetic_en += system.particles[i].mass * (system.particles[i].vel.x * system.particles[i].vel.x) / 2.;
-        system.kinetic_en += system.particles[i].mass * (system.particles[i].vel.y * system.particles[i].vel.y) / 2.;
-        system.kinetic_en += system.particles[i].mass * (system.particles[i].vel.z * system.particles[i].vel.z) / 2.;
+        system.kinetic_energy += system.particles[i].mass * (system.particles[i].vel.x * system.particles[i].vel.x) / 2.;
+        system.kinetic_energy += system.particles[i].mass * (system.particles[i].vel.y * system.particles[i].vel.y) / 2.;
+        system.kinetic_energy += system.particles[i].mass * (system.particles[i].vel.z * system.particles[i].vel.z) / 2.;
 
         system.particles[i].vel.x += 0.5 / system.particles[i].mass * (oldForces[i].x + newForces[i].x) * dt;
         system.particles[i].vel.y += 0.5 / system.particles[i].mass * (oldForces[i].y + newForces[i].y) * dt;
@@ -133,53 +134,53 @@ Vec3 *getForcesLennarJones(System &system, double *args)
         {
             Vec3 &p1 = system.particles[i].pos;
             Vec3 &p2 = system.particles[j].pos;
-            double x = (p1.x - p2.x) - system.L * rint((p1.x - p2.x) / system.L);
-            double y = (p1.y - p2.y) - system.L * rint((p1.y - p2.y) / system.L);
-            double z = (p1.z - p2.z) - system.L * rint((p1.z - p2.z) / system.L);
-            double r_ij_mod = sqrt(pow(x, 2) + pow(y, 2) + pow(z, 2));
-            Vec3 r_dir_ij = Vec3{.x = x / r_ij_mod, .y = y / r_ij_mod, .z = z / r_ij_mod};
+            double r_ij_x = (p1.x - p2.x) - system.L * rint((p1.x - p2.x) / system.L);
+            double r_ij_y = (p1.y - p2.y) - system.L * rint((p1.y - p2.y) / system.L);
+            double r_ij_z = (p1.z - p2.z) - system.L * rint((p1.z - p2.z) / system.L);
+            double r_ij_mod = sqrt(r_ij_x * r_ij_x + r_ij_y * r_ij_y + r_ij_z * r_ij_z);
+            Vec3 r_ij_dir = Vec3{.x = r_ij_x / r_ij_mod, .y = r_ij_y / r_ij_mod, .z = r_ij_z / r_ij_mod};
             // double F_magnitude = 24 * EPSILON * SIGMA / (r * r) * (2 * pow(SIGMA / r, 11) - pow(SIGMA / r, 5));
 
             // Use formula F = -dV/dr
-            double h = 1e-6;
-            double F_magnitude = -(lennarJonesPotential(system, r_ij_mod + h) - lennarJonesPotential(system, r_ij_mod - h)) / (2 * h);
+            double differential_step_h = 1e-6;
+            double force_magnitude = -(lennarJonesPotential(system, r_ij_mod + differential_step_h) - lennarJonesPotential(system, r_ij_mod - differential_step_h)) / (2 * differential_step_h);
 
-            forces[i].x += r_dir_ij.x * F_magnitude;
-            forces[i].y += r_dir_ij.y * F_magnitude;
-            forces[i].z += r_dir_ij.z * F_magnitude;
+            forces[i].x += r_ij_dir.x * force_magnitude;
+            forces[i].y += r_ij_dir.y * force_magnitude;
+            forces[i].z += r_ij_dir.z * force_magnitude;
 
-            forces[j].x -= r_dir_ij.x * F_magnitude;
-            forces[j].y -= r_dir_ij.y * F_magnitude;
-            forces[j].z -= r_dir_ij.z * F_magnitude;
+            forces[j].x -= r_ij_dir.x * force_magnitude;
+            forces[j].y -= r_ij_dir.y * force_magnitude;
+            forces[j].z -= r_ij_dir.z * force_magnitude;
 
-            // system.forcesWork[i] += force_ij * (r_dir_ij * r);
-            // system.forcesWork[j] += force_ij * (r_dir_ij * r);
+            // system.forcesWork[i] += force_ij * r_ij_dir * r);
+            // system.forcesWork[j] += force_ij * r_ij_dir * r);
 
-            system.forcesWork[i] += F_magnitude * r_ij_mod;
-            system.pot_en += lennarJonesPotential(system, r_ij_mod);
+            system.forcesWork[i] += force_magnitude * r_ij_mod;
+            system.potential_energy += lennarJonesPotential(system, r_ij_mod);
         }
     }
 
     return forces;
 }
 
-double getRNDVelocity(double SIGMA_VELOCITIES)
+double getRNDVelocity(double sigma_velocities_distribution)
 {
     double x = rand() / (RAND_MAX + 1.);
     double y = rand() / (RAND_MAX + 1.);
 
-    return SIGMA_VELOCITIES * sqrt(-2 * log(1 - x)) * cos(2 * PI * y);
+    return sigma_velocities_distribution * sqrt(-2 * log(1 - x)) * cos(2 * PI * y);
 }
 
 // Initialize velocities
-void initVelocities(System &system, double SIGMA_VELOCITIES)
+void initVelocities(System &system, double sigma_velocities_distribution)
 {
     srand(SEED);
     for (size_t i = 0; i < system.N_particles; i += 1)
     {
-        system.particles[i].vel.x = getRNDVelocity(SIGMA_VELOCITIES);
-        system.particles[i].vel.y = getRNDVelocity(SIGMA_VELOCITIES);
-        system.particles[i].vel.z = getRNDVelocity(SIGMA_VELOCITIES);
+        system.particles[i].vel.x = getRNDVelocity(sigma_velocities_distribution);
+        system.particles[i].vel.y = getRNDVelocity(sigma_velocities_distribution);
+        system.particles[i].vel.z = getRNDVelocity(sigma_velocities_distribution);
     }
 }
 
@@ -206,18 +207,22 @@ void initPositions(System &system)
         break;
     }
 
-    double jump = system.L / N_CELLS;
-    int q = 0;
-    for (size_t i = 0; i < N_CELLS; i++)
+    double single_cell_length = system.L / N_CELL_PER_ROW;
+    int n_particle_placed = 0;
+    for (size_t n_cell_x = 0; n_cell_x < N_CELL_PER_ROW; n_cell_x++)
     {
-        for (size_t j = 0; j < N_CELLS; j++)
+        for (size_t n_cell_y = 0; n_cell_y < N_CELL_PER_ROW; n_cell_y++)
         {
-            for (size_t k = 0; k < N_CELLS; k++)
+            for (size_t n_cell_z = 0; n_cell_z < N_CELL_PER_ROW; n_cell_z++)
             {
                 for (size_t w = 0; w < M; w++)
                 {
-                    system.particles[q].pos = Vec3{.x = (i + lattice_positions[w].x) * jump, .y = (j + lattice_positions[w].y) * jump, .z = (k + lattice_positions[w].z) * jump};
-                    q++;
+                    system.particles[n_particle_placed].pos = Vec3{
+                        .x = (n_cell_x + lattice_positions[w].x) * single_cell_length,
+                        .y = (n_cell_y + lattice_positions[w].y) * single_cell_length,
+                        .z = (n_cell_z + lattice_positions[w].z) * single_cell_length,
+                    };
+                    n_particle_placed++;
                 }
             }
         }
@@ -247,7 +252,7 @@ double var_array(const double *array, int len, int first)
     return sum / (len - first);
 }
 
-double TQ_Temperature(const System &system)
+double compute_temperature(const System &system)
 {
     double sum = 0;
     for (size_t i = 0; i < system.N_particles; i++)
@@ -259,7 +264,7 @@ double TQ_Temperature(const System &system)
     return sum / (3 * system.N_particles);
 }
 
-double TQ_Pressure(const System &system)
+double compute_pressure(const System &system)
 {
     double W = 0;
     for (size_t i = 0; i < system.N_particles; i++)
@@ -267,10 +272,20 @@ double TQ_Pressure(const System &system)
         W += system.forcesWork[i];
     }
     W /= system.N_particles;
-    double T = TQ_Temperature(system);
 
-    // return (T * system.density + W / 3); // Pressione
-    return (1 + W / (3 * T)); // Compressibiità
+    return (compute_temperature(system) * system.density + W / 3); // Pressione
+}
+
+double compute_compressibility(const System &system)
+{
+    double W = 0;
+    for (size_t i = 0; i < system.N_particles; i++)
+    {
+        W += system.forcesWork[i];
+    }
+    W /= system.N_particles;
+
+    return (1 + W / (3 * compute_temperature(system)));
 }
 
 void termostatoAnderson(System &system, double freq, double dt, double sigma_velocities)
@@ -288,7 +303,7 @@ void termostatoAnderson(System &system, double freq, double dt, double sigma_vel
 
 void termostatoAMoltiplicatore(System &system, double aim_temperature)
 {
-    double current_temperature = TQ_Temperature(system);
+    double current_temperature = compute_temperature(system);
     double lambda = sqrt(aim_temperature / current_temperature);
     for (size_t i = 0; i < system.N_particles; i++)
     {
@@ -306,41 +321,36 @@ void writePositions(const System &system, FILE *file)
     }
 }
 
-Thermodinamics gasSimulation(InitialCondition init_condition)
+Thermodinamics gasSimulation(const InitialCondition init_condition)
 {
-    // -----------------------------------
-    int N_PARTICLES = pow(N_CELLS, 3) * M;
-    const double t0 = 0.;   // Time zero simulation
-    const double tf = 6.;   // Time final simulation
-    const double dt = 1e-3; // Time interval
-    const double N_time_steps = (tf - t0) / dt;
+    const double time_start = 0.;
+    const double time_end = 6.;
+    const double time_step = 1e-3;
+    const double N_time_steps = (time_end - time_start) / time_step;
 
-    // SYSTEM INITIALIZATION
+    FILE *radial_distribution_file = fopen(init_condition.file_name_g, "w");
+    FILE *thermodinamics_data_each_t_file = fopen(init_condition.file_name_thermo, "w");
+
     System system;
-    system.N_particles = N_PARTICLES;
-
-    FILE *distribuzioneRadiale_file = fopen(init_condition.file_name_g, "w");
-    FILE *termo_data_file = fopen(init_condition.file_name_thermo, "w");
-
-    system.t = t0;
+    system.N_particles = pow(N_CELL_PER_ROW, 3) * M;
+    system.t = time_start;
     system.density = init_condition.densita;
-    double volume = (system.N_particles / system.density); // Cell volume
-    system.L = cbrt(volume);
+    double cubic_cell_volume = (system.N_particles / system.density); // Cell volume
+    system.L = cbrt(cubic_cell_volume);
     system.particles = (Particle *)malloc(sizeof(Particle) * system.N_particles);
+
     if (!system.particles)
     {
-        perror("Error allocating particles work array");
+        perror("Error allocating particles work array:");
         exit(EXIT_FAILURE);
     }
 
-    double sigma_velocities = sqrt(init_condition.temperatura);
-
-    // Init masses
     for (size_t j = 0; j < system.N_particles; j++)
     {
         system.particles[j].mass = MASS;
     }
 
+    double sigma_velocities = sqrt(init_condition.temperatura);
     initVelocities(system, sigma_velocities);
     initPositions(system);
 
@@ -350,7 +360,7 @@ Thermodinamics gasSimulation(InitialCondition init_condition)
     system.forcesWork = (double *)calloc(system.N_particles, sizeof(double));
     if (!system.forcesWork)
     {
-        perror("Error allocating force work array");
+        perror("Error allocating force work array:");
         exit(EXIT_FAILURE);
     }
 
@@ -362,32 +372,38 @@ Thermodinamics gasSimulation(InitialCondition init_condition)
     // Initialize thermodinamic variables arrays
     double *temperature_array = (double *)malloc(sizeof(double) * N_time_steps);
     double *pressure_array = (double *)malloc(sizeof(double) * N_time_steps);
+    double *compressibility_array = (double *)malloc(sizeof(double) * N_time_steps);
     double *energy_array = (double *)malloc(sizeof(double) * N_time_steps);
     if (!temperature_array || !pressure_array || !energy_array)
     {
-        perror("Error allocating thermo array");
+        perror("Error allocating thermo array:");
         exit(EXIT_FAILURE);
     }
 
-    int f_step = round(3 / dt);   // Primo step da cui iniziare a fare statistica
+    int thermalization_step = round(3 / time_step);
     double max_radius = system.L; // Raggio massimo g(r)
-    double N_intervals = 600;     // N bins
-    double radius_interval = max_radius / N_intervals;
+    double N_radius_intervals = 600;
+    double radius_interval = max_radius / N_radius_intervals;
 
-    int *counting_array = (int *)calloc(sizeof(int), N_intervals); // Array di bin per tenere traccia della densità radiale
-    if (!counting_array)
+    int *bin_counting_array = (int *)calloc(sizeof(int), N_radius_intervals); // Array di bin per tenere traccia della densità radiale
+    if (!bin_counting_array)
     {
         perror("Error allocating counting array");
         exit(EXIT_FAILURE);
     }
+
     int n_g_rad_done = 0; // Numero di densità radiali calcolare, usato per la normalizzazione della g
 
     for (size_t j = 0; j < N_time_steps; j++)
     {
-        // Thermodinamic at time t
-        temperature_array[j] = TQ_Temperature(system);
-        pressure_array[j] = TQ_Pressure(system);
-        energy_array[j] = system.kinetic_en + system.pot_en;
+
+        // termostatoAnderson(system, FREQ, dt, sigma_velocities);
+        // termostatoAMoltiplicatore(system, init_conditions[i].temperatura);
+
+        temperature_array[j] = compute_temperature(system);
+        pressure_array[j] = compute_pressure(system);
+        compressibility_array[j] = compute_compressibility(system);
+        energy_array[j] = system.kinetic_energy + system.potential_energy;
 
         // Bring particles back in the (0,0,0) box
         for (size_t i = 0; i < system.N_particles; i++)
@@ -397,54 +413,49 @@ Thermodinamics gasSimulation(InitialCondition init_condition)
             system.particles[i].pos.z = system.particles[i].pos.z - system.L * rint(system.particles[i].pos.z / system.L);
         }
 
-        verletPropagator(system, dt, getForcesLennarJones, NULL);
-
-        // termostatoAnderson(system, FREQ, dt, sigma_velocities);
-        // termostatoAMoltiplicatore(system, init_conditions[i].temperatura);
-        // printf("Energy: %f\n", system.kinetic_en + system.pot_en);
+        verletPropagator(system, time_step, getForcesLennarJones, NULL);
 
         // Compute g(r,t), only after thermalization
-        if (j > f_step && init_condition.stampa)
+        if (j < thermalization_step || !init_condition.stampa) continue;
+
+        n_g_rad_done++;
+        for (size_t i = 0; i < system.N_particles; i++)
         {
-            n_g_rad_done++;
-            for (size_t i = 0; i < system.N_particles; i++)
+            for (size_t k = 0; k < system.N_particles; k++)
             {
-                Vec3 &p1 = system.particles[i].pos;
-                for (size_t k = 0; k < system.N_particles; k++)
-                {
-                    if (k == i) continue;
-                    double x = (p1.x - system.particles[k].pos.x) - system.L * rint((p1.x - system.particles[k].pos.x) / system.L);
-                    double y = (p1.y - system.particles[k].pos.y) - system.L * rint((p1.y - system.particles[k].pos.y) / system.L);
-                    double z = (p1.z - system.particles[k].pos.z) - system.L * rint((p1.z - system.particles[k].pos.z) / system.L);
-                    double r = sqrt(x * x + y * y + z * z);
-                    int n_radius_jump = (int)round(r / radius_interval);
-                    counting_array[n_radius_jump]++;
-                }
+                if (k == i) continue;
+                double x = (system.particles[i].pos.x - system.particles[k].pos.x) - system.L * rint((system.particles[i].pos.x - system.particles[k].pos.x) / system.L);
+                double y = (system.particles[i].pos.y - system.particles[k].pos.y) - system.L * rint((system.particles[i].pos.y - system.particles[k].pos.y) / system.L);
+                double z = (system.particles[i].pos.z - system.particles[k].pos.z) - system.L * rint((system.particles[i].pos.z - system.particles[k].pos.z) / system.L);
+                double r = sqrt(x * x + y * y + z * z);
+                int n_bin = (int)round(r / radius_interval);
+                bin_counting_array[n_bin]++;
             }
         }
-    }
+    } //: END TIME_STEP LOOP
 
     // Stampa termodinamica
     if (init_condition.stampa)
     {
-        for (size_t j = 0; j < N_intervals; j++)
+        for (size_t j = 0; j < N_radius_intervals; j++)
         {
-
-            fprintf(distribuzioneRadiale_file, "%f %f %f\n", j * radius_interval, j * radius_interval * 2 / system.L, (double)(counting_array[j]) / (system.density * system.N_particles * n_g_rad_done * (4 * PI / 3) * (pow((j + 1) * radius_interval, 3) - pow(j * radius_interval, 3))));
+            fprintf(radial_distribution_file, "%f %f %f\n", j * radius_interval, j * radius_interval * 2 / system.L, (double)(bin_counting_array[j]) / (system.density * system.N_particles * n_g_rad_done * (4 * PI / 3) * (pow((j + 1) * radius_interval, 3) - pow(j * radius_interval, 3))));
         }
         for (size_t j = 0; j < N_time_steps; j++)
         {
-            fprintf(termo_data_file, "%lf %lf %lf %lf\n", t0 + j * dt, temperature_array[j], pressure_array[j], energy_array[j]);
+            fprintf(thermodinamics_data_each_t_file, "%lf %lf %lf %lf\n", time_start + j * time_step, temperature_array[j], pressure_array[j], energy_array[j]);
         }
     }
 
-    Thermodinamics thermo = {
-        .mean_T = mean_array(temperature_array, N_time_steps, f_step),
-        .sigma_T = sqrt(var_array(temperature_array, N_time_steps, f_step)),
-        .mean_P = mean_array(pressure_array, N_time_steps, f_step),
-        .sigma_P = sqrt(var_array(pressure_array, N_time_steps, f_step)),
-        .mean_E = mean_array(energy_array, N_time_steps, f_step),
-        .sigma_E = sqrt(var_array(energy_array, N_time_steps, f_step)),
+    Thermodinamics thermodinamics_statistics_obj = {
+        .mean_T = mean_array(temperature_array, N_time_steps, thermalization_step),
+        .sigma_T = sqrt(var_array(temperature_array, N_time_steps, thermalization_step)),
+        .mean_P = mean_array(pressure_array, N_time_steps, thermalization_step),
+        .sigma_P = sqrt(var_array(pressure_array, N_time_steps, thermalization_step)),
+        .mean_C = mean_array(compressibility_array, N_time_steps, thermalization_step),
+        .sigma_C = sqrt(var_array(compressibility_array, N_time_steps, thermalization_step)),
+        .mean_E = mean_array(energy_array, N_time_steps, thermalization_step),
+        .sigma_E = sqrt(var_array(energy_array, N_time_steps, thermalization_step)),
     };
 
     // FILE *file_end_position = fopen("./data/posizione_end.dat", "w");
@@ -453,14 +464,15 @@ Thermodinamics gasSimulation(InitialCondition init_condition)
 
     free(temperature_array);
     free(pressure_array);
+    free(compressibility_array);
     free(energy_array);
     free(system.particles);
     free(system.forcesWork);
-    free(counting_array);
-    fclose(termo_data_file);
-    fclose(distribuzioneRadiale_file);
+    free(bin_counting_array);
+    fclose(thermodinamics_data_each_t_file);
+    fclose(radial_distribution_file);
 
-    return thermo;
+    return thermodinamics_statistics_obj;
 }
 
 int main(int argc, char const *argv[])
@@ -497,10 +509,11 @@ int main(int argc, char const *argv[])
         Thermodinamics thermo = gasSimulation(init_conditions[i]);
 
         printf("Temperature: %f +- %f\n", thermo.mean_T, thermo.sigma_T);
-        printf("Compressibility: %f +- %f\n", thermo.mean_P, thermo.sigma_P);
+        printf("Pressure: %f +- %f\n", thermo.mean_P, thermo.sigma_P);
+        printf("Compressibility: %f +- %f\n", thermo.mean_C, thermo.sigma_C);
         printf("Energy: %f +- %f\n", thermo.mean_E, thermo.sigma_E);
 
-        fprintf(p_t_ro, "%lf %lf %lf\n", init_conditions[i].densita, thermo.mean_T, thermo.mean_P);
+        fprintf(p_t_ro, "%lf %lf %lf %lf\n", init_conditions[i].densita, thermo.mean_T, thermo.mean_C, thermo.mean_P);
     }
 
     // armonicOscillator();
