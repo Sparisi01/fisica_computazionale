@@ -26,9 +26,11 @@ set title "Funzione densità radiale" font ",16"
 set style line 1 lc rgb '#0060ad' lt 1 lw 2 pt 7 ps 0.5
 set style line 2 lc rgb '#dd181f' lt 1 lw 2 pt 5 ps 0.5
 
-
-f(x) = exp(-((4*((1/(x*22.1))**12 - (1/(x*22.1))**6))-0.01)/1.1)
 set xrange [0:1]
+
+
+f(x) = exp(-((4*((1/(x*29.47/2))**12 - (1/(x*29.47/2))**6))-0.01)/1.16)
+
 set y2label "GAS"
 plot "../data/distribuzione_radiale_gas.dat" using 2:3 with l t "ρ = 0.01" lc 1, \
 f(x) t "Peso di Boltzman"
@@ -45,6 +47,7 @@ unset format x
 set ytics 1
 set y2label "SOLIDO"
 set yrange [0:6]
+
 plot "../data/distribuzione_radiale_solido.dat" using 2:3 with l t "ρ = 1.2" lc 7
 
 

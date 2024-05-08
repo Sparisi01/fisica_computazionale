@@ -14,7 +14,7 @@
 #define MASS 1.
 // Lattice structure
 #define M 4              // M=1 CC, M=2 BCC, M=4 FCC
-#define N_CELL_PER_ROW 6 //
+#define N_CELL_PER_ROW 4 //
 #define FREQ 0           // Frequenza termostato, 0 disattivato
 
 struct Vec3
@@ -58,36 +58,37 @@ struct Thermodinamics
     double mean_E, sigma_E;
 };
 
+/// @brief Function that evolve the system from the state a time t to t+dt.
+/// @param system
+/// @param dt time interval for which the system is evolved
+/// @param F function returning an array of forces, force[i] must be the force acting on particle[i]
+/// @param args additional args for F
 void verletPropagator(System &system, double dt, Vec3 *(*F)(System &, double *), double *args)
 {
-
     system.kinetic_energy = 0;
     system.potential_energy = 0;
 
     Vec3 *oldForces = system.forces;
-    // Aggiorna posizioni di tutte le particelle
+
     for (size_t i = 0; i < system.N_particles; i++)
     {
         system.particles[i].pos.x += system.particles[i].vel.x * dt + 0.5 / system.particles[i].mass * oldForces[i].x * dt * dt;
         system.particles[i].pos.y += system.particles[i].vel.y * dt + 0.5 / system.particles[i].mass * oldForces[i].y * dt * dt;
         system.particles[i].pos.z += system.particles[i].vel.z * dt + 0.5 / system.particles[i].mass * oldForces[i].z * dt * dt;
     }
-    // Incrementa il tempo del sistema
     system.t += dt;
 
-    // Calcola forze agenti sulle particelle
     Vec3 *newForces = F(system, args);
 
-    //  Aggiorna velocità
     for (size_t i = 0; i < system.N_particles; i++)
     {
-        system.kinetic_energy += system.particles[i].mass * (system.particles[i].vel.x * system.particles[i].vel.x) / 2.;
-        system.kinetic_energy += system.particles[i].mass * (system.particles[i].vel.y * system.particles[i].vel.y) / 2.;
-        system.kinetic_energy += system.particles[i].mass * (system.particles[i].vel.z * system.particles[i].vel.z) / 2.;
-
         system.particles[i].vel.x += 0.5 / system.particles[i].mass * (oldForces[i].x + newForces[i].x) * dt;
         system.particles[i].vel.y += 0.5 / system.particles[i].mass * (oldForces[i].y + newForces[i].y) * dt;
         system.particles[i].vel.z += 0.5 / system.particles[i].mass * (oldForces[i].z + newForces[i].z) * dt;
+
+        system.kinetic_energy += system.particles[i].mass * (system.particles[i].vel.x * system.particles[i].vel.x) / 2.;
+        system.kinetic_energy += system.particles[i].mass * (system.particles[i].vel.y * system.particles[i].vel.y) / 2.;
+        system.kinetic_energy += system.particles[i].mass * (system.particles[i].vel.z * system.particles[i].vel.z) / 2.;
     }
 
     system.forces = newForces;
@@ -160,6 +161,11 @@ Vec3 *getForcesLennarJones(System &system, double *args)
             system.potential_energy += lennarJonesPotential(system, r_ij_mod);
         }
     }
+
+    /* for (size_t i = 0; i < system.N_particles; i++)
+    {
+        printf("%.5E %.5E %.5E\n", forces[i].x, forces[i].y, forces[i].z);
+    } */
 
     return forces;
 }
@@ -324,7 +330,7 @@ void writePositions(const System &system, FILE *file)
 Thermodinamics gasSimulation(const InitialCondition init_condition)
 {
     const double time_start = 0.;
-    const double time_end = 6.;
+    const double time_end = 100.;
     const double time_step = 1e-3;
     const double N_time_steps = (time_end - time_start) / time_step;
 
@@ -380,7 +386,7 @@ Thermodinamics gasSimulation(const InitialCondition init_condition)
         exit(EXIT_FAILURE);
     }
 
-    int thermalization_step = round(3 / time_step);
+    int thermalization_step = round(90 / time_step);
     double max_radius = system.L; // Raggio massimo g(r)
     double N_radius_intervals = 600;
     double radius_interval = max_radius / N_radius_intervals;
@@ -404,6 +410,7 @@ Thermodinamics gasSimulation(const InitialCondition init_condition)
         pressure_array[j] = compute_pressure(system);
         compressibility_array[j] = compute_compressibility(system);
         energy_array[j] = system.kinetic_energy + system.potential_energy;
+        // energy_array[j] = system.potential_energy;
 
         // Bring particles back in the (0,0,0) box
         for (size_t i = 0; i < system.N_particles; i++)
@@ -432,7 +439,7 @@ Thermodinamics gasSimulation(const InitialCondition init_condition)
                 bin_counting_array[n_bin]++;
             }
         }
-    } //: END TIME_STEP LOOP
+    }
 
     // Stampa termodinamica
     if (init_condition.stampa)
