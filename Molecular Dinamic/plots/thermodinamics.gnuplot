@@ -4,7 +4,7 @@ set terminal pngcairo size 800,600 enhanced font 'Helvetica,14'
 
 # Set output file name
 set output './png/termodinamica.png'
-set arrow 1 from 3, graph 0 to 3, graph 1 nohead lt 8 lw 1 dt 2
+set arrow 1 from 90, graph 0 to 90, graph 1 nohead lt 8 lw 1 dt 2
 
 
 set grid
@@ -23,7 +23,6 @@ set ylabel 'Compressibilità'
 set xlabel 'Tempo'
 
 unset format x
-set xtics 1
 
 unset tmargin
 unset title
