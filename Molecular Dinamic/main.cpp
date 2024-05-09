@@ -1,6 +1,8 @@
 #include <math.h>
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 // TEMP - RHO - M - N_CELL_PER_ROW - TIME_CUT - TEq
 // 2 - 1.2 - 4 - 4 - 0.4 - 1.062724
@@ -13,9 +15,12 @@
 #define EPSILON 1.
 #define MASS 1.
 // Lattice structure
-#define M 4              // M=1 CC, M=2 BCC, M=4 FCC
-#define N_CELL_PER_ROW 6 //
+#define M 2              // M=1 CC, M=2 BCC, M=4 FCC
+#define N_CELL_PER_ROW 4 //
 #define FREQ 0           // Frequenza termostato, 0 disattivato
+
+static int is_printing = 0;
+static FILE *p_t_ro;
 
 struct Vec3
 {
@@ -330,7 +335,7 @@ void writePositions(const System &system, FILE *file)
 Thermodinamics gasSimulation(const InitialCondition init_condition)
 {
     const double time_start = 0.;
-    const double time_end = 100.;
+    const double time_end = 70.;
     const double time_step = 1e-3;
     const double N_time_steps = (time_end - time_start) / time_step;
 
@@ -372,8 +377,7 @@ Thermodinamics gasSimulation(const InitialCondition init_condition)
 
     system.forces = getForcesLennarJones(system, NULL);
 
-    printf("N Particles: %d\n", system.N_particles);
-    printf("Box length: %lf\n", system.L);
+    // printf("Box length: %lf\n", system.L);
 
     // Initialize thermodinamic variables arrays
     double *temperature_array = (double *)malloc(sizeof(double) * N_time_steps);
@@ -386,7 +390,7 @@ Thermodinamics gasSimulation(const InitialCondition init_condition)
         exit(EXIT_FAILURE);
     }
 
-    int thermalization_step = round(50 / time_step);
+    int thermalization_step = round(60 / time_step);
     double max_radius = system.L; // Raggio massimo g(r)
     double N_radius_intervals = 600;
     double radius_interval = max_radius / N_radius_intervals;
@@ -482,16 +486,48 @@ Thermodinamics gasSimulation(const InitialCondition init_condition)
     return thermodinamics_statistics_obj;
 }
 
+void *get_result(void *init_conditions) // param is a dummy pointer
+{
+
+    Thermodinamics thermo = gasSimulation(*(InitialCondition *)init_conditions);
+
+    int has_been_printed = 0;
+    while (!has_been_printed)
+    {
+        if (is_printing)
+        {
+            sleep(1);
+        }
+        else
+        {
+            is_printing = 1;
+            printf("----------\n");
+            printf("Density: %lf\n", (*(InitialCondition *)init_conditions).densita);
+            printf("Temperature: %f +- %f\n", thermo.mean_T, thermo.sigma_T);
+            printf("Pressure: %f +- %f\n", thermo.mean_P, thermo.sigma_P);
+            printf("Compressibility: %f +- %f\n", thermo.mean_C, thermo.sigma_C);
+            printf("Energy: %f +- %f\n", thermo.mean_E, thermo.sigma_E);
+            fprintf(p_t_ro, "%lf %lf %lf %lf\n", (*(InitialCondition *)init_conditions).densita, thermo.mean_T, thermo.mean_C, thermo.mean_P);
+            has_been_printed = 1;
+            is_printing = 0;
+        }
+    }
+
+    return NULL;
+}
+
 int main(int argc, char const *argv[])
 {
 
     //------------------------------------
-    const int n_init = 1;
+    printf("N Particles: %f\n", pow(N_CELL_PER_ROW, 3) * M);
+
+    const int n_init = 14;
     InitialCondition init_conditions[n_init] = {
-        //{.densita = 1.2, .temperatura = 2.1, .stampa = 1, .file_name_g = "./data/distribuzione_radiale_solido.dat", .file_name_thermo = "./data/thermo_solido.dat"},
-        //{.densita = 0.01, .temperatura = 1.1, .stampa = 1, .file_name_g = "./data/distribuzione_radiale_gas.dat", .file_name_thermo = "./data/thermo_gas.dat"},
+        {.densita = 1.2, .temperatura = 2.1, .stampa = 1, .file_name_g = "./data/distribuzione_radiale_solido.dat", .file_name_thermo = "./data/thermo_solido.dat"},
+        {.densita = 0.01, .temperatura = 1.1, .stampa = 1, .file_name_g = "./data/distribuzione_radiale_gas.dat", .file_name_thermo = "./data/thermo_gas.dat"},
         {.densita = 0.8, .temperatura = 1.9, .stampa = 1, .file_name_g = "./data/distribuzione_radiale_liquido.dat", .file_name_thermo = "./data/thermo_liquido.dat"},
-        /* {.densita = 0.7, .temperatura = 1.5, .stampa = 0, .file_name_thermo = ""},
+        {.densita = 0.7, .temperatura = 1.5, .stampa = 0, .file_name_thermo = ""},
         {.densita = 0.6, .temperatura = 1.15, .stampa = 0, .file_name_thermo = ""},
         {.densita = 0.1, .temperatura = 0.7, .stampa = 0, .file_name_thermo = ""},
         {.densita = 1, .temperatura = 1.3, .stampa = 0, .file_name_thermo = ""},
@@ -501,13 +537,35 @@ int main(int argc, char const *argv[])
         {.densita = 0.001, .temperatura = 1, .stampa = 0, .file_name_thermo = ""},
         {.densita = 0.5, .temperatura = 0.9, .stampa = 0, .file_name_thermo = ""},
         {.densita = 0.3, .temperatura = 0.57, .stampa = 0, .file_name_thermo = ""},
-        {.densita = 0.25, .temperatura = 0.55, .stampa = 0, .file_name_thermo = ""} */
-    };
+        {.densita = 0.25, .temperatura = 0.55, .stampa = 0, .file_name_thermo = ""}};
 
-    FILE *p_t_ro = fopen("./data/pressione_temperatura_rho.dat", "w");
+    p_t_ro = fopen("./data/pressione_temperatura_rho.dat", "w");
+    if (!p_t_ro)
+    {
+        perror("Error opening file p_t_ro");
+        exit(EXIT_FAILURE);
+    }
+
+    pthread_t *tid = (pthread_t *)malloc(n_init * sizeof(pthread_t));
+    if (!tid)
+    {
+        perror("Error allocating threads");
+        exit(EXIT_FAILURE);
+    }
+
+    for (int i = 0; i < n_init; i++)
+        pthread_create(&tid[i], NULL, get_result, &init_conditions[i]);
+
+    // do some tasks unrelated to result
+
+    for (int i = 0; i < n_init; i++)
+        pthread_join(tid[i], NULL);
+
+    free(tid);
+    fclose(p_t_ro);
 
     // LOOP over all init conditions and save themodinamics observables
-    for (size_t i = 0; i < n_init; i++)
+    /* for (size_t i = 0; i < n_init; i++)
     {
         printf("-----------------------\n");
         printf("Starting simulation: %d/%d\n", i + 1, n_init);
@@ -521,7 +579,7 @@ int main(int argc, char const *argv[])
         printf("Energy: %f +- %f\n", thermo.mean_E, thermo.sigma_E);
 
         fprintf(p_t_ro, "%lf %lf %lf %lf\n", init_conditions[i].densita, thermo.mean_T, thermo.mean_C, thermo.mean_P);
-    }
+    } */
 
     // armonicOscillator();
 }

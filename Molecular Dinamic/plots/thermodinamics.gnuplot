@@ -18,7 +18,7 @@ set title "Temperatura e pressione in funzione del tempo" font ",16"
 
 set format x ""
 set ylabel 'Temperatura'
-plot "../data/thermo_gas.dat" using 1:2 w l t "ρ = 0.1", "../data/thermo_liquido.dat" using 1:2 w l lc 3 t "ρ = 0.8", "../data/thermo_solido.dat" using 1:2 w l lc 4 t "ρ = 1.2"
+plot "../data/FCC_256/thermo_gas.dat" using 1:2 w l t "ρ = 0.1", "../data/FCC_256/thermo_liquido.dat" using 1:2 w l lc 3 t "ρ = 0.8", "../data/FCC_256/thermo_solido.dat" using 1:2 w l lc 4 t "ρ = 1.2"
 set ylabel 'Compressibilità'
 set xlabel 'Tempo'
 

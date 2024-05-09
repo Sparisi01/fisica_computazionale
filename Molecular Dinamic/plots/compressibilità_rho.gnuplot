@@ -24,10 +24,8 @@ set style line 2 lc rgb '#dd181f' lt 1 lw 2 pt 5 ps 0.5
 # Set grid
 set grid
 
-
-
 # Plot data
-plot "../data/pressione_temperatura_rho.dat" using 1:3 w p ps 1 pt 5 notitle
+plot "../data/FCC_256/pressione_temperatura_rho.dat" using 1:3 w p ps 1 pt 5 notitle
 # Add more data sets as needed
 
 # Add legend

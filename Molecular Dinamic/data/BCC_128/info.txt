@@ -1,0 +1,85 @@
+N Particles: 128.000000
+----------
+Density: 1.000000
+Temperature: 0.677634 +- 0.029328
+Pressure: 3.151043 +- 0.211390
+Compressibility: 4.672307 +- 0.517423
+Energy: -670.083687 +- 0.001152
+----------
+Density: 1.200000
+Temperature: 1.081988 +- 0.051562
+Pressure: 21.055040 +- 0.312168
+Compressibility: 19.317986 +- 1.227992
+Energy: -403.991424 +- 0.003665
+----------
+Density: 0.750000
+Temperature: 1.070432 +- 0.044388
+Pressure: 1.157177 +- 0.376826
+Compressibility: 1.345720 +- 0.394301
+Energy: -381.724970 +- 0.001717
+----------
+Density: 0.700000
+Temperature: 0.984013 +- 0.037718
+Pressure: 0.191192 +- 0.363215
+Compressibility: 0.505265 +- 0.375569
+Energy: -374.146223 +- 0.001261
+----------
+Density: 0.600000
+Temperature: 0.989370 +- 0.034697
+Pressure: -0.615772 +- 0.392469
+Compressibility: -0.216961 +- 0.389795
+Energy: -304.389690 +- 0.000901
+----------
+Density: 0.001000
+Temperature: 0.965005 +- 0.003133
+Pressure: -0.006577 +- 0.019782
+Compressibility: 0.992200 +- 0.020556
+Energy: 184.098750 +- 0.000033
+----------
+Density: 0.500000
+Temperature: 1.070222 +- 0.044444
+Pressure: -0.601325 +- 0.405839
+Compressibility: -0.060753 +- 0.374563
+Energy: -215.238787 +- 0.000972
+----------
+Density: 0.400000
+Temperature: 1.108224 +- 0.046578
+Pressure: -0.638724 +- 0.363288
+Compressibility: 0.026963 +- 0.325083
+Energy: -135.921458 +- 0.000919
+----------
+Density: 0.300000
+Temperature: 1.178628 +- 0.054872
+Pressure: -0.547700 +- 0.332042
+Compressibility: 0.237433 +- 0.278745
+Energy: -43.991340 +- 0.000896
+----------
+Density: 0.250000
+Temperature: 1.217847 +- 0.042303
+Pressure: -0.487460 +- 0.304092
+Compressibility: 0.352339 +- 0.245701
+Energy: -3.574522 +- 0.000726
+----------
+Density: 0.200000
+Temperature: 1.140427 +- 0.060611
+Pressure: -0.478305 +- 0.291672
+Compressibility: 0.378595 +- 0.259220
+Energy: 15.016851 +- 0.000750
+----------
+Density: 0.100000
+Temperature: 1.183926 +- 0.035106
+Pressure: -0.289933 +- 0.215451
+Compressibility: 0.656162 +- 0.181640
+Energy: 111.667041 +- 0.000528
+----------
+Density: 0.800000
+Temperature: 1.038054 +- 0.044493
+Pressure: 1.908118 +- 0.365075
+Compressibility: 2.055547 +- 0.427185
+Energy: -420.947773 +- 0.001540
+----------
+Density: 0.010000
+Temperature: 1.115507 +- 0.009161
+Pressure: -0.039583 +- 0.060464
+Compressibility: 0.954675 +- 0.054176
+Energy: 202.337648 +- 0.000110

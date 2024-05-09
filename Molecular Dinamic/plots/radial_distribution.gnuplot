@@ -32,7 +32,8 @@ set xrange [0:1]
 f(x) = exp(-((4*((1/(x*29.47/2))**12 - (1/(x*29.47/2))**6))-0.01)/1.16)
 
 set y2label "GAS"
-plot "../data/distribuzione_radiale_gas.dat" using 2:3 with l t "ρ = 0.01" lc 1, \
+plot "../data/FCC_256/distribuzione_radiale_gas.dat" using 2:3 with l t "FCC 256" lc 1, \
+"../data/BCC_128/distribuzione_radiale_gas.dat" using 2:3 with l t "BCC 128" lc 1, \
 f(x) t "Peso di Boltzman"
 unset ylabel
 unset tmargin
@@ -41,13 +42,14 @@ unset title
 set yrange [0:3]
 
 
-plot "../data/distribuzione_radiale_liquido.dat" using 2:3 with l t "ρ = 0.8" lc 2
+plot "../data/FCC_256/distribuzione_radiale_liquido.dat" using 2:3 with l t "FCC 256" lc 2, \
+"../data/BCC_128/distribuzione_radiale_liquido.dat" using 2:3 with l t "BCC 128" lc 2
 set xlabel 'Raggio in unità di L/2'
 unset format x
 set ytics 1
 set y2label "SOLIDO"
 set yrange [0:6]
 
-plot "../data/distribuzione_radiale_solido.dat" using 2:3 with l t "ρ = 1.2" lc 7
-
+plot "../data/FCC_256/distribuzione_radiale_solido.dat" using 2:3 with l t "FCC 256" lc 7, \
+"../data/BCC_128/distribuzione_radiale_solido.dat" using 2:3 with l t "BCC 128" lc 7
 

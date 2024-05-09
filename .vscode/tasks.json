@@ -10,7 +10,8 @@
         "${file}",
         "-o",
         "${fileDirname}\\${fileBasenameNoExtension}.exe",
-        "-O3"
+        "-O3",
+        "-lpthread"
       ],
       "options": {
         "cwd": "${fileDirname}"
@@ -29,7 +30,8 @@
         "${file}",
         "-o",
         "${fileDirname}\\${fileBasenameNoExtension}.exe",
-        "-O3"
+        "-O3",
+        "-lpthread"
       ],
       "options": {
         "cwd": "C:\\msys64\\mingw64\\bin"
