@@ -6,12 +6,13 @@ set terminal pngcairo size 800,600 enhanced font 'Helvetica,14'
 set output './png/termodinamica.png'
 set arrow 1 from 90, graph 0 to 90, graph 1 nohead lt 8 lw 1 dt 2
 
+set key horizontal
 
 set grid
 set multiplot layout 2,1
 set lmargin at screen 0.15
 set rmargin at screen 0.95
-set title "Temperatura e pressione in funzione del tempo" font ",16"
+set title "Temperatura e pressione in funzione del tempo (FCC 256)" font ",16"
 
 #set xrange [0.4:6]
 #set yrange [1.0:1.3]
@@ -28,4 +29,4 @@ unset tmargin
 unset title
 #set yrange [-1:6]
 unset key
-plot "../data/thermo_gas.dat" using 1:3 w l notitle, "../data/thermo_liquido.dat" using 1:3 w l lc 3 notitle, "../data/thermo_solido.dat" using 1:3 w l lc 4 notitle
+plot "../data/FCC_256/thermo_gas.dat" using 1:3 w l notitle, "../data/FCC_256/thermo_liquido.dat" using 1:3 w l lc 3 notitle, "../data/FCC_256/thermo_solido.dat" using 1:3 w l lc 4 notitle

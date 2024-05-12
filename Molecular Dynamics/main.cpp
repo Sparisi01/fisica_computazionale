@@ -16,7 +16,7 @@
 #define MASS 1.
 // Lattice structure
 #define M 2              // M=1 CC, M=2 BCC, M=4 FCC
-#define N_CELL_PER_ROW 4 //
+#define N_CELL_PER_ROW 7 //
 #define FREQ 0           // Frequenza termostato, 0 disattivato
 
 static int is_printing = 0;
@@ -554,9 +554,9 @@ int main(int argc, char const *argv[])
     }
 
     for (int i = 0; i < n_init; i++)
+        // Eseguo le 14 simulazioni in parallelo su 14 dei 16 thread del mio pc,
+        // lasciandone due liberi per windows e spotify :)
         pthread_create(&tid[i], NULL, get_result, &init_conditions[i]);
-
-    // do some tasks unrelated to result
 
     for (int i = 0; i < n_init; i++)
         pthread_join(tid[i], NULL);
