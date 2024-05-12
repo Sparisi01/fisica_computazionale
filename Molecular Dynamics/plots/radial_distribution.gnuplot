@@ -34,7 +34,7 @@ f(x) = exp(-((4*((1/(x*29.47/2))**12 - (1/(x*29.47/2))**6))-0.01)/1.16)
 set y2label "GAS"
 plot "../data/FCC_256/distribuzione_radiale_gas.dat" using 2:3 with l t "FCC 256" lc 1, \
 "../data/FCC_864/distribuzione_radiale_gas.dat" using 2:3 with l t "FCC 864" lc 2, \
-"../data/BCC_686/distribuzione_radiale_gas.dat" using 2:3 with l t "BCC 868" lc 4, \
+"../data/BCC_686/distribuzione_radiale_gas.dat" using 2:3 with l t "BCC 686" lc 4, \
 #f(x) t "Peso di Boltzman"
 unset ylabel
 unset tmargin

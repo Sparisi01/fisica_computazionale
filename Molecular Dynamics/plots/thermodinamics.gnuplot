@@ -1,4 +1,4 @@
-set terminal pngcairo size 800,600 enhanced font 'Helvetica,14'
+set terminal png size 1600,1200 enhanced font ',28' lw 2
 # For PDF output, use:
 # set terminal pdfcairo size 8cm,6cm font 'Arial,10'
 
