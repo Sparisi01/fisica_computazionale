@@ -15,8 +15,8 @@
 #define EPSILON 1.
 #define MASS 1.
 // Lattice structure
-#define M 2              // M=1 CC, M=2 BCC, M=4 FCC
-#define N_CELL_PER_ROW 7 //
+#define M 4              // M=1 CC, M=2 BCC, M=4 FCC
+#define N_CELL_PER_ROW 4 //
 #define FREQ 0           // Frequenza termostato, 0 disattivato
 
 static int is_printing = 0;
@@ -454,7 +454,7 @@ Thermodinamics gasSimulation(const InitialCondition init_condition)
         }
         for (size_t j = 0; j < N_time_steps; j++)
         {
-            fprintf(thermodinamics_data_each_t_file, "%lf %lf %lf %lf\n", time_start + j * time_step, temperature_array[j], pressure_array[j], energy_array[j]);
+            fprintf(thermodinamics_data_each_t_file, "%lf %lf %lf %lf %lf\n", time_start + j * time_step, temperature_array[j], pressure_array[j], compressibility_array[j], energy_array[j]);
         }
     }
 

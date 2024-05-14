@@ -2,14 +2,14 @@
 set terminal png size 1600,1200 enhanced font ',28' lw 2
 set output './png/compressibilita.png'
 
-set yrange [-0.5:6]
+set yrange [-1:18]
 
 set tmargin at screen 0.9
 # Set title and labels
 set grid
 set lmargin at screen 0.15
 set rmargin at screen 0.95
-set xrange [-0.1:1.2]
+set xrange [-0.1:1.3]
 
 set xlabel 'Densità'
 set ylabel 'Compressibilità'
