@@ -22,9 +22,9 @@ set grid
 set key left spacing 2 offset 1,-1
 set key box
 # Plot data
-plot "../data/FCC_256/pressione_temperatura_rho.dat" using 1:3 w p ps 4 pt 6 t "FCC 256", \
-"../data/FCC_864/pressione_temperatura_rho.dat" using 1:3 w p ps 4 pt 6 t "FCC 864", \
-"../data/BCC_686/pressione_temperatura_rho.dat" using 1:3 w p ps 4 pt 6 t "BCC 686"# Add more data sets as needed
+plot "../data/FCC_256/pressione_temperatura_rho.dat" using 1:3 w p lc 1 ps 4 pt 6 t "FCC 256", \
+"../data/FCC_864/pressione_temperatura_rho.dat" using 1:3 w p lc 2 ps 4 pt 4 t "FCC 864", \
+"../data/BCC_686/pressione_temperatura_rho.dat" using 1:3 w p lc 4 ps 4 pt 8 t "BCC 686"# Add more data sets as needed
 
 # Add legend
 set key top left

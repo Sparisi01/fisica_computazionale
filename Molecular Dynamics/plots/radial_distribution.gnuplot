@@ -31,7 +31,7 @@ set key horizontal
 
 f(x) = exp(-((4*((1/(x*29.47/2))**12 - (1/(x*29.47/2))**6))-0.01)/1.16)
 
-set y2label "GAS"
+set y2label "ρ = 0.01"
 plot "../data/FCC_256/distribuzione_radiale_gas.dat" using 2:3 with l t "FCC 256" lc 1, \
 "../data/FCC_864/distribuzione_radiale_gas.dat" using 2:3 with l t "FCC 864" lc 2, \
 "../data/BCC_686/distribuzione_radiale_gas.dat" using 2:3 with l t "BCC 686" lc 4, \
@@ -39,7 +39,7 @@ plot "../data/FCC_256/distribuzione_radiale_gas.dat" using 2:3 with l t "FCC 256
 unset ylabel
 unset tmargin
 unset key
-set y2label "LIQUIDO"
+set y2label "ρ = 0.8"
 unset title
 set yrange [0:3]
 
@@ -50,7 +50,7 @@ plot "../data/FCC_256/distribuzione_radiale_liquido.dat" using 2:3 with l t "FCC
 set xlabel 'Raggio in unità di L/2'
 unset format x
 set ytics 1
-set y2label "SOLIDO"
+set y2label "ρ = 1.2"
 set yrange [0:6]
 
 plot "../data/FCC_256/distribuzione_radiale_solido.dat" using 2:3 with l t "FCC 256" lc 1, \
