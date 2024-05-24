@@ -17,8 +17,8 @@
 #define MASS 1.
 // Lattice structure
 #define M 4              // M=1 CC, M=2 BCC, M=4 FCC
-#define N_CELL_PER_ROW 6 //
-#define FREQ 50          // Frequenza termostato, 0 disattivato
+#define N_CELL_PER_ROW 5 //
+#define FREQ 0           // Frequenza termostato, 0 disattivato
 
 static int is_printing = 0;
 static FILE *p_t_ro;
@@ -277,7 +277,7 @@ double compute_temperature(const System &system)
     return sum / (3 * system.N_particles);
 }
 
-double compute_pressure(const System &system)
+double compute_pressure(const System &system, double temp)
 {
     double W = 0;
     for (size_t i = 0; i < system.N_particles; i++)
@@ -286,19 +286,19 @@ double compute_pressure(const System &system)
     }
     W /= system.N_particles;
 
-    return (compute_temperature(system) * system.density + W / 3); // Pressione
+    return (temp * system.density + W / 3); // Pressione
 }
 
-double compute_compressibility(const System &system)
+double compute_compressibility(const System &system, double temp)
 {
     double W = 0;
     for (size_t i = 0; i < system.N_particles; i++)
     {
         W += system.forcesWork[i];
     }
-    W /= system.N_particles;
+    W /= (system.N_particles * 2);
 
-    return (1 + W / (3 * compute_temperature(system)));
+    return (1 + W / (3 * temp));
 }
 
 void termostatoAnderson(const System &system, double freq, double dt, double sigma_velocities)
@@ -352,12 +352,24 @@ double calculatePotential(System &system, size_t i)
         double r_ij_z = (p1.z - p2.z) - system.L * rint((p1.z - p2.z) / system.L);
         double r_ij_mod = sqrt(r_ij_x * r_ij_x + r_ij_y * r_ij_y + r_ij_z * r_ij_z);
         potential += 4. * EPSILON * (pow(SIGMA / r_ij_mod, 12) - pow(SIGMA / r_ij_mod, 6));
+
+        // W therm
+        double h = 1e-6;
+        double pot_1 = 4. * EPSILON * (pow(SIGMA / (r_ij_mod - h), 12) - pow(SIGMA / (r_ij_mod - h), 6));
+        double pot_2 = 4. * EPSILON * (pow(SIGMA / (r_ij_mod + h), 12) - pow(SIGMA / (r_ij_mod + h), 6));
+        double F_ij = -(pot_2 - pot_1) / (2 * h);
+        system.forcesWork[i] += F_ij * r_ij_mod;
     }
     return potential;
 }
 
 int metropolisStep(System &system, double delta, double temperature, int print)
 {
+
+    // Reset lavori forze
+    for (size_t i = 0; i < system.N_particles; i++)
+        system.forcesWork[i] = 0;
+
     static double N_accepted = 0.;
     static double N_tot = 0.;
 
@@ -412,7 +424,7 @@ int metropolisStep(System &system, double delta, double temperature, int print)
 Thermodinamics gasSimulation(const InitialCondition init_condition)
 {
     const double time_step = init_condition.step;
-    const double N_time_steps = 5000;
+    const double N_time_steps = 10000;
 
     FILE *radial_distribution_file = fopen(init_condition.file_name_g, "w");
     FILE *thermodinamics_data_each_t_file = fopen(init_condition.file_name_thermo, "w");
@@ -422,6 +434,7 @@ Thermodinamics gasSimulation(const InitialCondition init_condition)
     system.t = 0;
     system.density = init_condition.densita;
     double cubic_cell_volume = (system.N_particles / system.density); // Cell volume
+
     system.L = cbrt(cubic_cell_volume);
     system.particles = (Particle *)malloc(sizeof(Particle) * system.N_particles);
 
@@ -465,7 +478,7 @@ Thermodinamics gasSimulation(const InitialCondition init_condition)
         exit(EXIT_FAILURE);
     }
 
-    int thermalization_step = 30 / time_step;
+    int thermalization_step = 500 / time_step;
     double max_radius = system.L; // Raggio massimo g(r)
     double N_radius_intervals = 600;
     double radius_interval = max_radius / N_radius_intervals;
@@ -482,9 +495,9 @@ Thermodinamics gasSimulation(const InitialCondition init_condition)
     for (size_t j = 0; j < N_time_steps; j++)
     {
 
-        temperature_array[j] = compute_temperature(system);
-        pressure_array[j] = compute_pressure(system);
-        compressibility_array[j] = compute_compressibility(system);
+        temperature_array[j] = init_condition.temperatura; // compute_temperature(system);
+        pressure_array[j] = compute_pressure(system, init_condition.temperatura);
+        compressibility_array[j] = compute_compressibility(system, init_condition.temperatura);
         energy_array[j] = system.kinetic_energy + system.potential_energy;
         // energy_array[j] = system.potential_energy;
 
@@ -546,7 +559,7 @@ Thermodinamics gasSimulation(const InitialCondition init_condition)
     // fclose(file_end_position);
 
     metropolisStep(system, time_step, init_condition.temperatura, 1);
-
+    printf("CELL: %lf\n", system.L);
     free(temperature_array);
     free(pressure_array);
     free(compressibility_array);
@@ -577,6 +590,7 @@ void *get_result(void *init_conditions) // param is a dummy pointer
             is_printing = 1;
             printf("----------\n");
             printf("Density: %lf\n", (*(InitialCondition *)init_conditions).densita);
+
             printf("Temperature: %f +- %f\n", thermo.mean_T, thermo.sigma_T);
             printf("Pressure: %f +- %f\n", thermo.mean_P, thermo.sigma_P);
             printf("Compressibility: %f +- %f\n", thermo.mean_C, thermo.sigma_C);
@@ -596,11 +610,11 @@ int main(int argc, char const *argv[])
     //------------------------------------
     printf("N Particles: %f\n", pow(N_CELL_PER_ROW, 3) * M);
 
-    const int n_init = 1;
+    const int n_init = 3;
     InitialCondition init_conditions[n_init] = {
-        //{.densita = 1.2, .temperatura = 1.1, .stampa = 1, .file_name_g = "./data/distribuzione_radiale_solido.dat", .file_name_thermo = "./data/thermo_solido.dat", .step = 0.1},
-        //{.densita = 0.01, .temperatura = 1.1, .stampa = 1, .file_name_g = "./data/distribuzione_radiale_gas.dat", .file_name_thermo = "./data/thermo_gas.dat", .step = 0.1},
-        {.densita = 0.8, .temperatura = 1.1, .stampa = 1, .file_name_g = "./data/distribuzione_radiale_liquido.dat", .file_name_thermo = "./data/thermo_liquido.dat", .step = 0.07},
+        {.densita = 1.2, .temperatura = 1.1, .stampa = 1, .file_name_g = "./data/distribuzione_radiale_solido.dat", .file_name_thermo = "./data/thermo_solido.dat", .step = 0.1},
+        {.densita = 0.01, .temperatura = 1.1, .stampa = 1, .file_name_g = "./data/distribuzione_radiale_gas.dat", .file_name_thermo = "./data/thermo_gas.dat", .step = 0.5},
+        {.densita = 0.8, .temperatura = 1.1, .stampa = 1, .file_name_g = "./data/distribuzione_radiale_liquido.dat", .file_name_thermo = "./data/thermo_liquido.dat", .step = 0.13},
         /*{.densita = 0.7, .temperatura = 1.5, .stampa = 0, .file_name_thermo = ""},
         {.densita = 0.6, .temperatura = 1.15, .stampa = 0, .file_name_thermo = ""},
         {.densita = 0.1, .temperatura = 0.7, .stampa = 0, .file_name_thermo = ""},

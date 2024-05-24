@@ -1,1 +1,0 @@
-plot "../data/thermo_liquido.dat" using 1:5 with lines

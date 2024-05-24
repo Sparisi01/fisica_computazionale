@@ -10,7 +10,7 @@
         "${file}",
         "-o",
         "${fileDirname}\\${fileBasenameNoExtension}.exe",
-        "-O0",
+        "-O3",
         "-lpthread"
       ],
       "options": {
@@ -30,7 +30,7 @@
         "${file}",
         "-o",
         "${fileDirname}\\${fileBasenameNoExtension}.exe",
-        "-O0",
+        "-O3",
         "-lpthread"
       ],
       "options": {
