@@ -31,6 +31,8 @@ set key horizontal
 
 f(x) = exp(-((4*((1/(x*29.47/2))**12 - (1/(x*29.47/2))**6))-0.01)/1.16)
 
+
+
 set y2label "ρ = 0.01"
 plot "../data/FCC_256/distribuzione_radiale_gas.dat" using 2:3 with l t "FCC 256" lc 1, \
 "../data/FCC_864/distribuzione_radiale_gas.dat" using 2:3 with l t "FCC 864" lc 2, \

@@ -17,7 +17,7 @@
 #define MASS 1.
 // Lattice structure
 #define M 4              // M=1 CC, M=2 BCC, M=4 FCC
-#define N_CELL_PER_ROW 5 //
+#define N_CELL_PER_ROW 4 //
 #define FREQ 0           // Frequenza termostato, 0 disattivato
 
 static int is_printing = 0;
@@ -164,6 +164,9 @@ Vec3 *getForcesLennarJones(System &system, double *args)
             // system.forcesWork[i] += force_ij * r_ij_dir * r);
             // system.forcesWork[j] += force_ij * r_ij_dir * r);
 
+            // DIVISO PER DUE PERCHé HO USATO LA STESSA FUNZIONE PER LA COMPRESSIBILITA
+            // CON I DUE METODI CHE VARIANO DI UN FATTORE DUE:
+            // EVENTUALEMNTE TOGLIERE DIVISO DUE QUI E PER DUE IN COMPRESSIBILITà
             system.forcesWork[i] += force_magnitude * r_ij_mod;
             system.potential_energy += lennarJonesPotential(system, r_ij_mod);
         }
@@ -284,7 +287,7 @@ double compute_pressure(const System &system, double temp)
     {
         W += system.forcesWork[i];
     }
-    W /= system.N_particles;
+    W /= (system.N_particles);
 
     return (temp * system.density + W / 3); // Pressione
 }
@@ -296,7 +299,7 @@ double compute_compressibility(const System &system, double temp)
     {
         W += system.forcesWork[i];
     }
-    W /= (system.N_particles * 2);
+    W /= (system.N_particles);
 
     return (1 + W / (3 * temp));
 }
@@ -354,7 +357,7 @@ double calculatePotential(System &system, size_t i)
         potential += 4. * EPSILON * (pow(SIGMA / r_ij_mod, 12) - pow(SIGMA / r_ij_mod, 6));
 
         // W therm
-        double h = 1e-6;
+        double h = 1e-4;
         double pot_1 = 4. * EPSILON * (pow(SIGMA / (r_ij_mod - h), 12) - pow(SIGMA / (r_ij_mod - h), 6));
         double pot_2 = 4. * EPSILON * (pow(SIGMA / (r_ij_mod + h), 12) - pow(SIGMA / (r_ij_mod + h), 6));
         double F_ij = -(pot_2 - pot_1) / (2 * h);
@@ -415,8 +418,26 @@ int metropolisStep(System &system, double delta, double temperature, int print)
             p1.y -= system.L * floor(p1.y / system.L);
             p1.z -= system.L * floor(p1.z / system.L);
         }
+
         N_tot++;
     }
+
+    /* double old_W = 0;
+    for (size_t i = 0; i < system.N_particles; i++)
+    {
+        old_W += system.forcesWork[i];
+    } */
+    double pot_save = system.potential_energy;
+    getForcesLennarJones(system, NULL);
+    system.potential_energy = pot_save;
+
+    /* double new_W = 0;
+    for (size_t i = 0; i < system.N_particles; i++)
+    {
+        new_W += system.forcesWork[i] * 2;
+    }
+
+    printf("%lf\n", (old_W - new_W) / new_W); */
 
     return 0;
 }
@@ -537,9 +558,9 @@ Thermodinamics gasSimulation(const InitialCondition init_condition)
         {
             fprintf(radial_distribution_file, "%f %f %f\n", j * radius_interval, j * radius_interval * 2 / system.L, (double)(bin_counting_array[j]) / (system.density * system.N_particles * n_g_rad_done * (4 * PI / 3) * (pow((j + 1) * radius_interval, 3) - pow(j * radius_interval, 3))));
         }
-        for (size_t j = 0; j < N_time_steps; j++)
+        for (int j = 0; j < N_time_steps; j++)
         {
-            fprintf(thermodinamics_data_each_t_file, "%lf %lf %lf %lf %lf\n", j * time_step, temperature_array[j], pressure_array[j], compressibility_array[j], energy_array[j]);
+            fprintf(thermodinamics_data_each_t_file, "%d %lf %lf %lf %lf\n", j, temperature_array[j], pressure_array[j], compressibility_array[j], energy_array[j]);
         }
     }
 

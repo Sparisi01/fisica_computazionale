@@ -20,7 +20,6 @@ set tmargin at screen 0.9
 set grid
 
 set ytics 0.5
-set format x ""
 set title "Confronto funzione densità radiale e peso di Boltzmann" font ",32"
 
 set style line 1 lc rgb '#0060ad' lt 1 lw 4 pt 7 ps 0.5
@@ -28,7 +27,7 @@ set style line 2 lc rgb '#dd181f' lt 1 lw 4 pt 5 ps 0.5
 
 set xrange [0:1]
 
-set xlabel 'r'
+set xlabel 'Raggio in unità di L/2'
 set key box
 set key spacing 2 offset -1,-1
 

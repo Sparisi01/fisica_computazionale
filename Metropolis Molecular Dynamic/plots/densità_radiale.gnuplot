@@ -11,14 +11,16 @@ set rmargin at screen 0.95
 set title "Distribuzione radiale"
 set format x ""
 L = 36.840315
-f(x) = exp(-((4*((1/(x*L/2))**12 - (1/(x*L/2))**6)))/1.1) 
-plot "../data/distribuzione_radiale_gas.dat" using 2:3 w lines t "Gas" lc 1 lw 2, f(x) w l 
-
+#f(x) = exp(-((4*((1/(x*L/2))**12 - (1/(x*L/2))**6)))/1.1) 
+plot "../data/FCC-256/distribuzione_radiale_gas.dat" using 2:3 w lines t "Gas" lc 1 lw 2, \
+"../data/FCC-256-verlet/distribuzione_radiale_gas.dat" using 2:3 w p notitle
 unset title
 
-plot "../data/distribuzione_radiale_liquido.dat" using 2:3 w lines t "Liquido" lc 2 lw 2
+plot "../data/FCC-256/distribuzione_radiale_liquido.dat" using 2:3 w lines t "Liquido" lc 2 lw 2, \
+"../data/FCC-256-verlet/distribuzione_radiale_liquido.dat" using 2:3 w p notitle
 
 unset format x
 set ylabel "Densità radiale g(r)" offset -2,9.6
 set xlabel 'Raggio in unità di L/2'
-plot "../data/distribuzione_radiale_solido.dat" using 2:3 w lines t "Solido" lc 4 lw 2
+plot "../data/FCC-256/distribuzione_radiale_solido.dat" using 2:3 w lines t "Solido" lc 4 lw 2, \
+"../data/FCC-256-verlet/distribuzione_radiale_solido.dat" using 2:3 w p notitle
