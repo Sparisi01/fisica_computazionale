@@ -1,4 +1,3 @@
-#include "metropolis.h"
 #include <math.h>
 #include <pthread.h>
 #include <stdio.h>
@@ -418,26 +417,12 @@ int metropolisStep(System &system, double delta, double temperature, int print)
             p1.y -= system.L * floor(p1.y / system.L);
             p1.z -= system.L * floor(p1.z / system.L);
         }
-
         N_tot++;
     }
 
-    /* double old_W = 0;
-    for (size_t i = 0; i < system.N_particles; i++)
-    {
-        old_W += system.forcesWork[i];
-    } */
     double pot_save = system.potential_energy;
     getForcesLennarJones(system, NULL);
     system.potential_energy = pot_save;
-
-    /* double new_W = 0;
-    for (size_t i = 0; i < system.N_particles; i++)
-    {
-        new_W += system.forcesWork[i] * 2;
-    }
-
-    printf("%lf\n", (old_W - new_W) / new_W); */
 
     return 0;
 }
@@ -499,7 +484,7 @@ Thermodinamics gasSimulation(const InitialCondition init_condition)
         exit(EXIT_FAILURE);
     }
 
-    int thermalization_step = 500 / time_step;
+    int thermalization_step = 5000;
     double max_radius = system.L; // Raggio massimo g(r)
     double N_radius_intervals = 600;
     double radius_interval = max_radius / N_radius_intervals;
@@ -515,6 +500,8 @@ Thermodinamics gasSimulation(const InitialCondition init_condition)
 
     for (size_t j = 0; j < N_time_steps; j++)
     {
+        if (j % 100 == 0)
+            printf("\rStep: %d/%d", j, (int)N_time_steps);
 
         temperature_array[j] = init_condition.temperatura; // compute_temperature(system);
         pressure_array[j] = compute_pressure(system, init_condition.temperatura);
@@ -560,7 +547,7 @@ Thermodinamics gasSimulation(const InitialCondition init_condition)
         }
         for (int j = 0; j < N_time_steps; j++)
         {
-            fprintf(thermodinamics_data_each_t_file, "%d %lf %lf %lf %lf\n", j, temperature_array[j], pressure_array[j], compressibility_array[j], energy_array[j]);
+            fprintf(thermodinamics_data_each_t_file, "%d;%lf;%lf;%lf;%lf\n", j, temperature_array[j], pressure_array[j], compressibility_array[j], energy_array[j]);
         }
     }
 
@@ -627,27 +614,25 @@ void *get_result(void *init_conditions) // param is a dummy pointer
 
 int main(int argc, char const *argv[])
 {
-
     //------------------------------------
     printf("N Particles: %f\n", pow(N_CELL_PER_ROW, 3) * M);
 
-    const int n_init = 3;
+    const int n_init = 14;
     InitialCondition init_conditions[n_init] = {
-        {.densita = 1.2, .temperatura = 1.1, .stampa = 1, .file_name_g = "./data/distribuzione_radiale_solido.dat", .file_name_thermo = "./data/thermo_solido.dat", .step = 0.1},
-        {.densita = 0.01, .temperatura = 1.1, .stampa = 1, .file_name_g = "./data/distribuzione_radiale_gas.dat", .file_name_thermo = "./data/thermo_gas.dat", .step = 0.5},
-        {.densita = 0.8, .temperatura = 1.1, .stampa = 1, .file_name_g = "./data/distribuzione_radiale_liquido.dat", .file_name_thermo = "./data/thermo_liquido.dat", .step = 0.13},
-        /*{.densita = 0.7, .temperatura = 1.5, .stampa = 0, .file_name_thermo = ""},
-        {.densita = 0.6, .temperatura = 1.15, .stampa = 0, .file_name_thermo = ""},
-        {.densita = 0.1, .temperatura = 0.7, .stampa = 0, .file_name_thermo = ""},
-        {.densita = 1, .temperatura = 1.3, .stampa = 0, .file_name_thermo = ""},
-        {.densita = 0.75, .temperatura = 1.8, .stampa = 0, .file_name_thermo = ""},
-        {.densita = 0.2, .temperatura = 0.45, .stampa = 0, .file_name_thermo = ""},
-        {.densita = 0.4, .temperatura = 0.65, .stampa = 0, .file_name_thermo = ""},
-        {.densita = 0.001, .temperatura = 1, .stampa = 0, .file_name_thermo = ""},
-        {.densita = 0.5, .temperatura = 0.9, .stampa = 0, .file_name_thermo = ""},
-        {.densita = 0.3, .temperatura = 0.57, .stampa = 0, .file_name_thermo = ""},
-        {.densita = 0.25, .temperatura = 0.55, .stampa = 0, .file_name_thermo = ""} */
-    };
+        {.densita = 1.2, .temperatura = 1.1, .stampa = 1, .file_name_g = "./data/distribuzione_radiale_solido.dat", .file_name_thermo = "./data/thermo_solido.csv", .step = 0.1},
+        {.densita = 0.01, .temperatura = 1.1, .stampa = 1, .file_name_g = "./data/distribuzione_radiale_gas.dat", .file_name_thermo = "./data/thermo_gas.csv", .step = 0.5},
+        {.densita = 0.8, .temperatura = 1.1, .stampa = 1, .file_name_g = "./data/distribuzione_radiale_liquido.dat", .file_name_thermo = "./data/thermo_liquido.csv", .step = 0.13},
+        {.densita = 0.7, .temperatura = 1.1, .stampa = 0, .file_name_thermo = "", .step = 0.13},
+        {.densita = 0.6, .temperatura = 1.1, .stampa = 0, .file_name_thermo = "", .step = 0.13},
+        {.densita = 0.1, .temperatura = 1.1, .stampa = 0, .file_name_thermo = "", .step = 0.5},
+        {.densita = 1, .temperatura = 1.1, .stampa = 0, .file_name_thermo = "", .step = 0.1},
+        {.densita = 0.75, .temperatura = 1.1, .stampa = 0, .file_name_thermo = "", .step = 0.13},
+        {.densita = 0.2, .temperatura = 1.1, .stampa = 0, .file_name_thermo = "", .step = 0.5},
+        {.densita = 0.4, .temperatura = 1.1, .stampa = 0, .file_name_thermo = "", .step = 0.13},
+        {.densita = 0.001, .temperatura = 1.1, .stampa = 0, .file_name_thermo = "", .step = 0.13},
+        {.densita = 0.5, .temperatura = 1.1, .stampa = 0, .file_name_thermo = "", .step = 0.13},
+        {.densita = 0.3, .temperatura = 1.1, .stampa = 0, .file_name_thermo = "", .step = 0.13},
+        {.densita = 0.25, .temperatura = 1.1, .stampa = 0, .file_name_thermo = "", .step = 0.13}};
 
     p_t_ro = fopen("./data/pressione_temperatura_rho.dat", "w");
     if (!p_t_ro)

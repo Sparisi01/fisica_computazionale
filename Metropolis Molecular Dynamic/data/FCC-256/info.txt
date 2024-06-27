@@ -1,5 +1,109 @@
 N Particles: 256.000000
-Ratio: 0.691233
+Step: 9900/10000Ratio: 0.763703
+CELL: 63.496042
+----------
+Density: 0.001000
+Temperature: 1.100000 +- 0.000000
+Pressure: 0.000162 +- 0.010918
+Compressibility: 0.999148 +- 0.009925
+Energy: -1.072970 +- 0.778598
+Step: 9600/10000Ratio: 0.763669
+CELL: 7.528288
+----------
+Density: 0.600000
+Temperature: 1.100000 +- 0.000000
+Pressure: -0.326569 +- 0.336505
+Compressibility: 0.103119 +- 0.305913
+Energy: -1017.613257 +- 12.881158
+Ratio: 0.763667
+CELL: 7.151228
+----------
+Density: 0.700000
+Temperature: 1.100000 +- 0.000000
+Pressure: 0.366528 +- 0.364747
+Compressibility: 0.633207 +- 0.331588
+Energy: -1171.377115 +- 14.171444
+Ratio: 0.763663
+CELL: 6.349604
+----------
+Density: 1.000000
+Temperature: 1.100000 +- 0.000000
+Pressure: 4.879931 +- 0.409921
+Compressibility: 4.436301 +- 0.372655
+Energy: -1645.503055 +- 19.844332
+Ratio: 0.763663
+CELL: 10.079368
+----------
+Density: 0.250000
+Temperature: 1.100000 +- 0.000000
+Pressure: -0.578461 +- 0.216127
+Compressibility: 0.224126 +- 0.196479
+Energy: -532.456938 +- 17.092658
+Step: 9600/10000Ratio: 0.763645
+CELL: 8.000000
+----------
+Density: 0.500000
+Temperature: 1.100000 +- 0.000000
+Pressure: -0.630798 +- 0.292158
+Compressibility: -0.073453 +- 0.265598
+Energy: -872.916362 +- 15.787793
+Ratio: 0.763638
+CELL: 9.485049
+----------
+Density: 0.300000
+Temperature: 1.100000 +- 0.000000
+Pressure: -0.667498 +- 0.235387
+Compressibility: 0.093184 +- 0.213988
+Energy: -605.621755 +- 13.223170
+Ratio: 0.763636
+CELL: 8.617739
+----------
+Density: 0.400000
+Temperature: 1.100000 +- 0.000000
+Pressure: -0.704106 +- 0.276507
+Compressibility: -0.040096 +- 0.251370
+Energy: -739.078737 +- 18.050657
+Step: 9900/10000Ratio: 0.763600
+CELL: 6.988644
+----------
+Density: 0.750000
+Temperature: 1.100000 +- 0.000000
+Pressure: 1.110994 +- 0.357059
+Compressibility: 1.259994 +- 0.324599
+Energy: -1243.542984 +- 15.057329
+Step: 9600/10000Ratio: 0.763454
+CELL: 13.679808
+----------
+Density: 0.100000
+Temperature: 1.100000 +- 0.000000
+Pressure: -0.361688 +- 0.149800
+Compressibility: 0.571193 +- 0.136182
+Energy: -244.090679 +- 14.329567
+Step: 9700/10000Ratio: 0.763386
+CELL: 10.857670
+----------
+Density: 0.200000
+Temperature: 1.100000 +- 0.000000
+Pressure: -0.567970 +- 0.223309
+Compressibility: 0.283663 +- 0.203008
+Energy: -477.929114 +- 23.106873
+Step: 9900/10000Ratio: 0.763095
+CELL: 6.839904
+----------
+Density: 0.800000
+Temperature: 1.100000 +- 0.000000
+Pressure: 1.939668 +- 0.378185
+Compressibility: 1.963334 +- 0.343804
+Energy: -1312.146160 +- 16.274485
+Ratio: 0.763087
+CELL: 29.472252
+----------
+Density: 0.010000
+Temperature: 1.100000 +- 0.000000
+Pressure: -0.035206 +- 0.044050
+Compressibility: 0.957994 +- 0.040046
+Energy: -21.614897 +- 3.212772
+Ratio: 0.763053
 CELL: 5.975206
 ----------
 Density: 1.200000
@@ -7,19 +111,3 @@ Temperature: 1.100000 +- 0.000000
 Pressure: 18.275241 +- 0.399978
 Compressibility: 16.413856 +- 0.363617
 Energy: -1522.761170 +- 21.131132
-Ratio: 0.712633
-CELL: 6.839904
-----------
-Density: 0.010000
-Temperature: 1.100000 +- 0.000000
-Pressure: -0.036065 +- 0.043222
-Compressibility: 0.957213 +- 0.039292
-Energy: -21.269112 +- 3.450971
-----------
-Density: 0.800000
-Temperature: 1.100000 +- 0.000000
-Pressure: 1.962471 +- 0.384368
-Compressibility: 1.984064 +- 0.349425
-Energy: -1311.616784 +- 16.424140
-Ratio: 0.715394
-CELL: 29.472252

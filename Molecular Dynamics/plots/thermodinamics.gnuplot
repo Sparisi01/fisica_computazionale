@@ -28,9 +28,9 @@ set ylabel 'Energia per particella'
 set xlabel 'Tempo'
 unset yrange
 unset format x
-
 unset tmargin
 unset title
 #set yrange [-1:6]
 unset key
+
 plot "../data/thermo_gas.dat" using 1:($5/256) w l notitle, "../data/thermo_liquido.dat" using 1:($5/256) w l lc 3 notitle, "../data/thermo_solido.dat" using 1:($5/256) w l lc 4 notitle

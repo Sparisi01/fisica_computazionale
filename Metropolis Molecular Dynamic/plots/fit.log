@@ -1,0 +1,10 @@
+
+
+*******************************************************************************
+Thu Jun 27 18:32:26 2024
+
+
+FIT:    data read from file using 1:2 every ::0::(points_to_fit - 1)
+        format = x:z
+        x range restricted to [0.00000 : 550.000]
+BREAK: No data to fit
